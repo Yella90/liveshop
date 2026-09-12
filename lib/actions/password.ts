@@ -9,6 +9,7 @@ import { randomBytes } from 'crypto'
    Utilisé uniquement côté serveur pour :
    - insérer dans password_resets
    - vérifier l'existence d'un user
+   - consommer un token après changement de mdp
    ============================================ */
 function getAdminClient() {
   const url = process.env.SUPABASE_URL
@@ -94,16 +95,26 @@ export async function requestPasswordReset(email: string) {
    METTRE À JOUR LE MOT DE PASSE
    Appelé après que l'utilisateur a cliqué le lien
    et s'est retrouvé connecté sur /nouveau-mot-de-passe
+
+   ✅ Consomme le token APRÈS succès
+      (pas dans le callback, pour éviter que Gmail
+       ne consomme le token via son pré-chargement)
    ============================================ */
-export async function updatePassword(newPassword: string) {
+export async function updatePassword(
+  newPassword: string,
+  resetToken?: string
+) {
   const supabase = await createClient()
 
+  // 1. Valider le mot de passe
   if (!newPassword || newPassword.length < 6) {
     return {
       error: 'Le mot de passe doit contenir au moins 6 caractères.',
     }
   }
 
+  // 2. Vérifier que l'utilisateur est connecté
+  //    (il l'est grâce au magic link généré par /auth/callback)
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -112,6 +123,7 @@ export async function updatePassword(newPassword: string) {
     return { error: 'Session expirée. Veuillez refaire la demande.' }
   }
 
+  // 3. Mettre à jour le mot de passe
   const { error } = await supabase.auth.updateUser({
     password: newPassword,
   })
@@ -120,5 +132,30 @@ export async function updatePassword(newPassword: string) {
     return { error: error.message }
   }
 
+  // 4. Consommer le token seulement maintenant que tout est OK
+  if (resetToken) {
+    await consumeResetToken(resetToken)
+  }
+
   return { success: true }
+}
+
+/* ============================================
+   CONSOMMER UN TOKEN
+   Supprime la ligne de password_resets
+   Appelé après un changement de mot de passe réussi
+   ============================================ */
+export async function consumeResetToken(token: string) {
+  if (!token) return { success: true }
+
+  try {
+    const admin = getAdminClient()
+    await admin.from('password_resets').delete().eq('token', token)
+    return { success: true }
+  } catch (err) {
+    console.error('consumeResetToken error:', err)
+    // On ne fait pas échouer le changement de mot de passe
+    // si la suppression du token échoue
+    return { success: true }
+  }
 }

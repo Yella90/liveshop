@@ -63,7 +63,7 @@ export default function SessionDetailClient({
 
   const publicUrl = useMemo(() => {
     if (typeof window === 'undefined') return ''
-    return `${window.location.origin}/${shop.slug}/session/${session.slug}`
+    return `https://liveshop-dusky.vercel.app/${shop.slug}/session/${session.slug}`
   }, [shop.slug, session.slug])
 
   useEffect(() => {

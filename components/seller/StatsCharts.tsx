@@ -2,8 +2,6 @@
 
 import { useState } from 'react'
 import {
-  LineChart,
-  Line,
   AreaChart,
   Area,
   BarChart,
@@ -12,7 +10,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts'
 
@@ -34,14 +31,19 @@ type Stats = {
 
 type Period = 'day' | 'month' | 'year'
 
+// ✅ Type unifié pour toutes les données du BarChart
+type ChartDataPoint = {
+  label: string
+  orders: number
+  revenue: number
+}
+
 export default function StatsCharts({ stats }: { stats: Stats }) {
   const [period, setPeriod] = useState<Period>('day')
 
-  // Fusionner visiteurs + commandes par date
+  // Fusion visiteurs + commandes par jour
   const mergedByDay = stats.visitors.map((v) => {
-    const dayOrders = stats.ordersByDay.find(
-      (o) => o.date === v.date
-    )
+    const dayOrders = stats.ordersByDay.find((o) => o.date === v.date)
     return {
       date: v.date,
       visits: Number(v.total_visits),
@@ -51,7 +53,6 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
     }
   })
 
-  // Ajouter les jours avec commandes mais sans visites
   stats.ordersByDay.forEach((o) => {
     if (!mergedByDay.find((m) => m.date === o.date)) {
       mergedByDay.push({
@@ -66,17 +67,25 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
 
   mergedByDay.sort((a, b) => a.date.localeCompare(b.date))
 
-  const monthData = stats.ordersByMonth.map((m) => ({
-    month: m.month,
-    orders: Number(m.order_count),
-    revenue: Number(m.revenue),
-  }))
-
-  const yearData = stats.ordersByYear.map((y) => ({
-    year: String(y.year),
-    orders: Number(y.order_count),
-    revenue: Number(y.revenue),
-  }))
+  // ✅ Données unifiées pour le BarChart
+  const barChartData: ChartDataPoint[] =
+    period === 'day'
+      ? mergedByDay.map((d) => ({
+          label: d.date,
+          orders: d.orders,
+          revenue: d.revenue,
+        }))
+      : period === 'month'
+        ? stats.ordersByMonth.map((m) => ({
+            label: m.month,
+            orders: Number(m.order_count),
+            revenue: Number(m.revenue),
+          }))
+        : stats.ordersByYear.map((y) => ({
+            label: String(y.year),
+            orders: Number(y.order_count),
+            revenue: Number(y.revenue),
+          }))
 
   return (
     <div className="space-y-6">
@@ -141,21 +150,37 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={mergedByDay}>
               <defs>
-                <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient
+                  id="colorVisitors"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
                   <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                 </linearGradient>
-                <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient
+                  id="colorOrders"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
                   <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#e2e8f0"
+                vertical={false}
+              />
               <XAxis
                 dataKey="date"
                 tick={{ fontSize: 11, fill: '#64748b' }}
-                tickFormatter={(val) => {
-                  const d = new Date(val)
+                tickFormatter={(val: any) => {
+                  const d = new Date(String(val))
                   return `${d.getDate()}/${d.getMonth() + 1}`
                 }}
                 stroke="#cbd5e1"
@@ -173,8 +198,8 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
                   color: '#fff',
                   fontSize: 12,
                 }}
-                labelFormatter={(val) =>
-                  new Date(val).toLocaleDateString('fr-FR', {
+                labelFormatter={(val: any) =>
+                  new Date(String(val)).toLocaleDateString('fr-FR', {
                     day: 'numeric',
                     month: 'long',
                   })
@@ -233,35 +258,25 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
 
         <div className="h-72 sm:h-80 -ml-4">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={
-                period === 'day'
-                  ? mergedByDay
-                  : period === 'month'
-                  ? monthData
-                  : yearData
-              }
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+            <BarChart data={barChartData}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#e2e8f0"
+                vertical={false}
+              />
               <XAxis
-                dataKey={
-                  period === 'day'
-                    ? 'date'
-                    : period === 'month'
-                    ? 'month'
-                    : 'year'
-                }
+                dataKey="label"
                 tick={{ fontSize: 11, fill: '#64748b' }}
-                tickFormatter={(val) => {
+                tickFormatter={(val: any) => {
                   if (period === 'day') {
-                    const d = new Date(val)
+                    const d = new Date(String(val))
                     return `${d.getDate()}/${d.getMonth() + 1}`
                   }
                   if (period === 'month') {
-                    const [y, m] = val.split('-')
+                    const [y, m] = String(val).split('-')
                     return `${m}/${y.slice(2)}`
                   }
-                  return val
+                  return String(val)
                 }}
                 stroke="#cbd5e1"
               />
@@ -279,8 +294,11 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
                   fontSize: 12,
                 }}
                 formatter={(value: any, name: any) => {
-                  if (name === 'Chiffre d\'affaires') {
-                    return [`${Number(value).toLocaleString('fr-FR')} FCFA`, name]
+                  if (name === "Chiffre d'affaires") {
+                    return [
+                      `${Number(value).toLocaleString('fr-FR')} FCFA`,
+                      name,
+                    ]
                   }
                   return [value, name]
                 }}
@@ -311,7 +329,9 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
               .filter((s: any) => s.total_visits > 0)
               .map((s: any) => {
                 const max = Math.max(
-                  ...stats.sessions.map((x: any) => x.unique_visitors || 0)
+                  ...stats.sessions.map(
+                    (x: any) => x.unique_visitors || 0
+                  )
                 )
                 const width =
                   max > 0 ? ((s.unique_visitors || 0) / max) * 100 : 0
@@ -323,8 +343,8 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
                         {s.session_name}
                       </p>
                       <p className="text-xs text-slate-500 shrink-0 ml-2">
-                        {s.unique_visitors} visiteurs ·{' '}
-                        {s.total_visits} vues
+                        {s.unique_visitors} visiteurs · {s.total_visits}{' '}
+                        vues
                       </p>
                     </div>
                     <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -381,25 +401,65 @@ function Icon({ name }: { name: string }) {
   const cls = 'w-5 h-5 text-white'
   if (name === 'users')
     return (
-      <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+      <svg
+        className={cls}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+        />
       </svg>
     )
   if (name === 'orders')
     return (
-      <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      <svg
+        className={cls}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+        />
       </svg>
     )
   if (name === 'revenue')
     return (
-      <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <svg
+        className={cls}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
       </svg>
     )
   return (
-    <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+    <svg
+      className={cls}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+      />
     </svg>
   )
 }

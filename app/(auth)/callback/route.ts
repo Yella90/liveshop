@@ -1,4 +1,5 @@
 
+export const runtime = 'nodejs'; // <-- AJOUTEZ CETTE LIGNE AUSSI
 export const dynamic = 'force-dynamic'; // <-- Ajoutez cette ligne
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'

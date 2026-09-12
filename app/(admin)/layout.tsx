@@ -14,17 +14,14 @@ export default async function AdminLayout({
 
   if (!user) redirect('/connexion')
 
-  // Vérifier le rôle : accepte "admin" depuis user_metadata
   const role = user.user_metadata?.role
   if (role !== 'admin') redirect('/dashboard')
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      <div className="flex min-h-screen">
+      <div className="flex">
         <AdminSidebar />
-        <main className="flex-1 min-w-0 overflow-x-hidden">
-          {children}
-        </main>
+        <main className="flex-1 min-w-0 min-h-screen">{children}</main>
       </div>
     </div>
   )

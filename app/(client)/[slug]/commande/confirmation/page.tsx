@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { RESERVED_SLUGS } from '@/lib/constants'
+import VisitTracker from '@/components/client/VisitTracker'
 
 export async function generateMetadata({
   params,
@@ -56,6 +57,7 @@ export default async function ConfirmationPage({
           CONFETTIS DÉCORATIFS (CSS PUR)
           ============================================ */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <VisitTracker shopSlug={slug} />
         {/* Cercles flottants */}
         <div className="absolute top-10 left-[10%] w-3 h-3 rounded-full bg-emerald-400/60 animate-float-slow" />
         <div className="absolute top-24 right-[15%] w-2 h-2 rounded-full bg-indigo-400/60 animate-float delay-500" />

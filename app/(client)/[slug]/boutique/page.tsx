@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { RESERVED_SLUGS } from '@/lib/constants'
 import ClientProductGrid from '@/components/client/ClientProductGrid'
+import VisitTracker from '@/components/client/VisitTracker'
 
 export async function generateMetadata({
   params,
@@ -61,6 +62,7 @@ export default async function BoutiquePage({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <VisitTracker shopSlug={slug} />
       {/* ============================================
           HEADER STICKY
           ============================================ */}

@@ -179,7 +179,7 @@ export default async function ConfirmationPage({
               </p>
             </div>
             <Link
-              href="/mes-commandes"
+              href={`/mes-commandes?from=${shop.slug}`}
               className="shrink-0 inline-flex items-center gap-2 bg-white text-indigo-700 font-bold px-4 py-2.5 rounded-xl hover:bg-indigo-50 active:scale-95 transition-all text-sm"
             >
               Suivre
@@ -414,7 +414,7 @@ export default async function ConfirmationPage({
             ============================================ */}
         <div className="space-y-3 animate-fade-in-up delay-500">
           <Link
-            href="/mes-commandes"
+            href={`/mes-commandes?from=${shop.slug}`}
             className="group relative w-full flex items-center justify-center gap-2 bg-slate-900 text-white font-bold py-4 px-6 rounded-2xl hover:bg-slate-800 hover:shadow-2xl active:scale-[0.98] transition-all overflow-hidden btn-shine"
           >
             <svg

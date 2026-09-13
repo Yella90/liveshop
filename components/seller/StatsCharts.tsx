@@ -31,7 +31,6 @@ type Stats = {
 
 type Period = 'day' | 'month' | 'year'
 
-// ✅ Type unifié pour toutes les données du BarChart
 type ChartDataPoint = {
   label: string
   orders: number
@@ -67,7 +66,6 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
 
   mergedByDay.sort((a, b) => a.date.localeCompare(b.date))
 
-  // ✅ Données unifiées pour le BarChart
   const barChartData: ChartDataPoint[] =
     period === 'day'
       ? mergedByDay.map((d) => ({
@@ -99,6 +97,7 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
           )} visites`}
           gradient="from-indigo-500 to-violet-600"
           icon="users"
+          delay={0}
         />
         <StatCard
           label="Commandes"
@@ -106,13 +105,15 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
           sublabel="30 derniers jours"
           gradient="from-emerald-500 to-emerald-700"
           icon="orders"
+          delay={100}
         />
         <StatCard
           label="Chiffre d'affaires"
-          value={`${stats.totals.totalRevenue.toLocaleString('fr-FR')}`}
+          value={stats.totals.totalRevenue.toLocaleString('fr-FR')}
           sublabel="FCFA"
           gradient="from-amber-500 to-orange-600"
           icon="revenue"
+          delay={200}
         />
         <StatCard
           label="Taux de conversion"
@@ -120,6 +121,7 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
           sublabel="Commandes / visiteurs"
           gradient="from-rose-500 to-pink-600"
           icon="chart"
+          delay={300}
         />
       </div>
 
@@ -147,82 +149,102 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
         </div>
 
         <div className="h-72 sm:h-80 -ml-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={mergedByDay}>
-              <defs>
-                <linearGradient
-                  id="colorVisitors"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient
-                  id="colorOrders"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#e2e8f0"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 11, fill: '#64748b' }}
-                tickFormatter={(val: any) => {
-                  const d = new Date(String(val))
-                  return `${d.getDate()}/${d.getMonth() + 1}`
-                }}
-                stroke="#cbd5e1"
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: '#64748b' }}
-                stroke="#cbd5e1"
-                allowDecimals={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: '#0f172a',
-                  border: 'none',
-                  borderRadius: 12,
-                  color: '#fff',
-                  fontSize: 12,
-                }}
-                labelFormatter={(val: any) =>
-                  new Date(String(val)).toLocaleDateString('fr-FR', {
-                    day: 'numeric',
-                    month: 'long',
-                  })
-                }
-              />
-              <Area
-                type="monotone"
-                dataKey="visitors"
-                name="Visiteurs uniques"
-                stroke="#6366f1"
-                strokeWidth={2}
-                fill="url(#colorVisitors)"
-              />
-              <Area
-                type="monotone"
-                dataKey="orders"
-                name="Commandes"
-                stroke="#10b981"
-                strokeWidth={2}
-                fill="url(#colorOrders)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          {mergedByDay.length === 0 ? (
+            <EmptyChart message="Aucune donnée de trafic pour le moment" />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={mergedByDay}>
+                <defs>
+                  <linearGradient
+                    id="colorVisitors"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor="#6366f1"
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="#6366f1"
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                  <linearGradient
+                    id="colorOrders"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor="#10b981"
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="#10b981"
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#e2e8f0"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 11, fill: '#64748b' }}
+                  tickFormatter={(val: any) => {
+                    const d = new Date(String(val))
+                    return `${d.getDate()}/${d.getMonth() + 1}`
+                  }}
+                  stroke="#cbd5e1"
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: '#64748b' }}
+                  stroke="#cbd5e1"
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: '#0f172a',
+                    border: 'none',
+                    borderRadius: 12,
+                    color: '#fff',
+                    fontSize: 12,
+                  }}
+                  labelFormatter={(val: any) =>
+                    new Date(String(val)).toLocaleDateString('fr-FR', {
+                      day: 'numeric',
+                      month: 'long',
+                    })
+                  }
+                />
+                <Area
+                  type="monotone"
+                  dataKey="visitors"
+                  name="Visiteurs uniques"
+                  stroke="#6366f1"
+                  strokeWidth={2}
+                  fill="url(#colorVisitors)"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="orders"
+                  name="Commandes"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  fill="url(#colorOrders)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
 
@@ -238,7 +260,6 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
             </p>
           </div>
 
-          {/* Sélecteur période */}
           <div className="inline-flex bg-slate-100 rounded-xl p-1">
             {(['day', 'month', 'year'] as Period[]).map((p) => (
               <button
@@ -257,60 +278,64 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
         </div>
 
         <div className="h-72 sm:h-80 -ml-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={barChartData}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#e2e8f0"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="label"
-                tick={{ fontSize: 11, fill: '#64748b' }}
-                tickFormatter={(val: any) => {
-                  if (period === 'day') {
-                    const d = new Date(String(val))
-                    return `${d.getDate()}/${d.getMonth() + 1}`
-                  }
-                  if (period === 'month') {
-                    const [y, m] = String(val).split('-')
-                    return `${m}/${y.slice(2)}`
-                  }
-                  return String(val)
-                }}
-                stroke="#cbd5e1"
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: '#64748b' }}
-                stroke="#cbd5e1"
-                allowDecimals={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: '#0f172a',
-                  border: 'none',
-                  borderRadius: 12,
-                  color: '#fff',
-                  fontSize: 12,
-                }}
-                formatter={(value: any, name: any) => {
-                  if (name === "Chiffre d'affaires") {
-                    return [
-                      `${Number(value).toLocaleString('fr-FR')} FCFA`,
-                      name,
-                    ]
-                  }
-                  return [value, name]
-                }}
-              />
-              <Bar
-                dataKey="orders"
-                name="Commandes"
-                fill="#6366f1"
-                radius={[8, 8, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          {barChartData.length === 0 ? (
+            <EmptyChart message="Aucune commande sur cette période" />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={barChartData}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#e2e8f0"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 11, fill: '#64748b' }}
+                  tickFormatter={(val: any) => {
+                    if (period === 'day') {
+                      const d = new Date(String(val))
+                      return `${d.getDate()}/${d.getMonth() + 1}`
+                    }
+                    if (period === 'month') {
+                      const [y, m] = String(val).split('-')
+                      return `${m}/${y.slice(2)}`
+                    }
+                    return String(val)
+                  }}
+                  stroke="#cbd5e1"
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: '#64748b' }}
+                  stroke="#cbd5e1"
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: '#0f172a',
+                    border: 'none',
+                    borderRadius: 12,
+                    color: '#fff',
+                    fontSize: 12,
+                  }}
+                  formatter={(value: any, name: any) => {
+                    if (name === 'Chiffre d\'affaires') {
+                      return [
+                        `${Number(value).toLocaleString('fr-FR')} FCFA`,
+                        name,
+                      ]
+                    }
+                    return [value, name]
+                  }}
+                />
+                <Bar
+                  dataKey="orders"
+                  name="Commandes"
+                  fill="#6366f1"
+                  radius={[8, 8, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
 
@@ -325,37 +350,46 @@ export default function StatsCharts({ stats }: { stats: Stats }) {
           </p>
 
           <div className="space-y-3">
-            {stats.sessions
-              .filter((s: any) => s.total_visits > 0)
-              .map((s: any) => {
-                const max = Math.max(
-                  ...stats.sessions.map(
-                    (x: any) => x.unique_visitors || 0
+            {stats.sessions.filter((s: any) => s.total_visits > 0).length ===
+            0 ? (
+              <p className="text-sm text-slate-500 text-center py-6">
+                Aucune visite enregistrée sur vos sessions
+              </p>
+            ) : (
+              stats.sessions
+                .filter((s: any) => s.total_visits > 0)
+                .map((s: any) => {
+                  const max = Math.max(
+                    ...stats.sessions.map(
+                      (x: any) => x.unique_visitors || 0
+                    )
                   )
-                )
-                const width =
-                  max > 0 ? ((s.unique_visitors || 0) / max) * 100 : 0
+                  const width =
+                    max > 0
+                      ? ((s.unique_visitors || 0) / max) * 100
+                      : 0
 
-                return (
-                  <div key={s.session_id}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <p className="text-sm font-semibold text-slate-900 truncate">
-                        {s.session_name}
-                      </p>
-                      <p className="text-xs text-slate-500 shrink-0 ml-2">
-                        {s.unique_visitors} visiteurs · {s.total_visits}{' '}
-                        vues
-                      </p>
+                  return (
+                    <div key={s.session_id}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <p className="text-sm font-semibold text-slate-900 truncate">
+                          {s.session_name}
+                        </p>
+                        <p className="text-xs text-slate-500 shrink-0 ml-2">
+                          {s.unique_visitors} visiteurs · {s.total_visits}{' '}
+                          vues
+                        </p>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-indigo-500 to-violet-600 rounded-full transition-all duration-700"
+                          style={{ width: `${width}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-indigo-500 to-violet-600 rounded-full transition-all duration-700"
-                        style={{ width: `${width}%` }}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
+                  )
+                })
+            )}
           </div>
         </div>
       )}
@@ -372,15 +406,20 @@ function StatCard({
   sublabel,
   gradient,
   icon,
+  delay = 0,
 }: {
   label: string
   value: string
   sublabel: string
   gradient: string
   icon: 'users' | 'orders' | 'revenue' | 'chart'
+  delay?: number
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5">
+    <div
+      className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 animate-fade-in-up"
+      style={{ animationDelay: `${delay}ms` }}
+    >
       <div
         className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg mb-3`}
       >
@@ -397,6 +436,35 @@ function StatCard({
   )
 }
 
+/* ============================================
+   EmptyChart
+   ============================================ */
+function EmptyChart({ message }: { message: string }) {
+  return (
+    <div className="h-full flex flex-col items-center justify-center">
+      <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
+        <svg
+          className="w-7 h-7 text-slate-400"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.5}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+          />
+        </svg>
+      </div>
+      <p className="text-sm text-slate-500">{message}</p>
+    </div>
+  )
+}
+
+/* ============================================
+   Icon
+   ============================================ */
 function Icon({ name }: { name: string }) {
   const cls = 'w-5 h-5 text-white'
   if (name === 'users')

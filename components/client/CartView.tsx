@@ -8,12 +8,32 @@ import { useCart } from '@/lib/hooks/useCart'
 import { createOrder } from '@/lib/actions/orders'
 import { useMyOrders } from '@/lib/hooks/useMyOrders'
 import SellerInfoCard from './SellerInfoCard'
+
+/* ============================================
+   TYPE Shop — Étendu avec tous les champs
+   ============================================ */
 type Shop = {
   id: string
   name: string
   slug: string
   description: string | null
+  logo_url: string | null
   phone: string | null
+  address: string | null
+  postal_code: string | null
+  city: string | null
+  country: string | null
+  whatsapp: string | null
+  contact_email: string | null
+  website: string | null
+  instagram: string | null
+  tiktok: string | null
+  facebook: string | null
+  opening_hours: string | null
+  return_policy: string | null
+  shipping_policy: string | null
+  verified: boolean
+  years_experience: number | null
   created_at: string
   delivery_payer_default: 'CLIENT' | 'SELLER'
   free_delivery_threshold: number | null
@@ -30,7 +50,7 @@ export default function CartView({
 }) {
   const router = useRouter()
 
-  // ✅ Hook appelé en haut du composant (règle des Hooks)
+  // ✅ Hook appelé en haut du composant
   const { saveOrder } = useMyOrders()
 
   const {
@@ -195,10 +215,19 @@ export default function CartView({
             </Link>
 
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-                <span className="text-white font-bold text-[10px]">
-                  {shop.name.charAt(0).toUpperCase()}
-                </span>
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center overflow-hidden">
+                {shop.logo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={shop.logo_url}
+                    alt={shop.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white font-bold text-[10px]">
+                    {shop.name.charAt(0).toUpperCase()}
+                  </span>
+                )}
               </div>
               <h1 className="text-sm font-bold text-slate-900">Panier</h1>
             </div>
@@ -312,7 +341,25 @@ export default function CartView({
             </span>
           </div>
 
-          <div className="w-10" />
+          <Link
+            href={`/mes-commandes?from=${shop.slug}`}
+            className="p-2 -mr-2 text-slate-900 hover:text-indigo-600 transition-colors"
+            title="Suivre mes commandes"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+              />
+            </svg>
+          </Link>
         </div>
       </header>
 
@@ -320,9 +367,11 @@ export default function CartView({
         onSubmit={handleSubmit}
         className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-5 pb-32"
       >
+        {/* CARTE VENDEUR COMPACTE */}
         <div>
-  <SellerInfoCard shop={shop} variant="compact" />
-</div>
+          <SellerInfoCard shop={shop} variant="compact" />
+        </div>
+
         {/* ARTICLES */}
         <section className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -503,7 +552,6 @@ export default function CartView({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Nom */}
             <div className="sm:col-span-2">
               <label
                 htmlFor="clientName"
@@ -552,7 +600,6 @@ export default function CartView({
               </div>
             </div>
 
-            {/* Téléphone */}
             <div>
               <label
                 htmlFor="clientPhone"
@@ -601,7 +648,6 @@ export default function CartView({
               </div>
             </div>
 
-            {/* Quartier */}
             <div>
               <label
                 htmlFor="clientQuarter"
@@ -658,7 +704,6 @@ export default function CartView({
             </div>
           </div>
 
-          {/* Mode de récupération */}
           <div className="mt-5">
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-3">
               Mode de récupération <span className="text-red-500">*</span>
@@ -691,7 +736,6 @@ export default function CartView({
             </div>
           </div>
 
-          {/* Note */}
           <div className="mt-5">
             <label
               htmlFor="note"

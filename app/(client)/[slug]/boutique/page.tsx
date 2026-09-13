@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { RESERVED_SLUGS } from '@/lib/constants'
 import ClientProductGrid from '@/components/client/ClientProductGrid'
 import SellerInfoCard from '@/components/client/SellerInfoCard'
@@ -47,11 +48,14 @@ export default async function BoutiquePage({
 
   if (!shop) notFound()
 
-  // ✅ Récupérer les stats vendeur en parallèle
+  // ✅ Client admin pour bypass RLS sur les stats publiques
+  const admin = createAdminClient()
+
   const [
     { data: products },
-    { count: orderCount },
     { count: productCount },
+    { count: orderCount },
+    { count: deliveredCount },
   ] = await Promise.all([
     supabase
       .from('products')
@@ -60,15 +64,20 @@ export default async function BoutiquePage({
       .eq('active', true)
       .order('created_at', { ascending: false }),
     supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-      .eq('shop_id', shop.id)
-      .in('status', ['CONFIRMEE', 'LIVREE']),
-    supabase
       .from('products')
       .select('*', { count: 'exact', head: true })
       .eq('shop_id', shop.id)
       .eq('active', true),
+    // ✅ Compteurs via admin (visibles par les clients anonymes)
+    admin
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('shop_id', shop.id),
+    admin
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('shop_id', shop.id)
+      .eq('status', 'LIVREE'),
   ])
 
   const visibleProducts =
@@ -183,7 +192,6 @@ export default async function BoutiquePage({
         </div>
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-6">
-          {/* ✅ Carte vendeur complète */}
           <SellerInfoCard
             shop={shop}
             stats={{

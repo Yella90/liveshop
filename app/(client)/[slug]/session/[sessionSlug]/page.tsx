@@ -52,7 +52,7 @@ export default async function SessionPage({
 
   const { data: shop } = await supabase
     .from('shops')
-    .select('id, name, slug, description, phone, created_at')
+    .select('*')
     .eq('slug', slug)
     .maybeSingle()
   if (!shop) notFound()
@@ -76,7 +76,6 @@ export default async function SessionPage({
       ?.map((sp: any) => sp.products)
       .filter((p: any) => p && p.active) ?? []
 
-  // ✅ Client admin pour les stats publiques (bypass RLS)
   const admin = createAdminClient()
   const { count: orderCount } = await admin
     .from('orders')
@@ -85,9 +84,7 @@ export default async function SessionPage({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* ============================================
-          HEADER STICKY
-          ============================================ */}
+      {/* HEADER STICKY */}
       <header className="sticky top-0 z-40 glass border-b border-white/20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
           <Link
@@ -168,9 +165,7 @@ export default async function SessionPage({
         </div>
       </header>
 
-      {/* ============================================
-          BANDEAU LIVE
-          ============================================ */}
+      {/* BANDEAU LIVE */}
       <section className="relative overflow-hidden bg-gradient-to-br from-red-500 via-red-600 to-rose-600 text-white">
         <div className="absolute inset-0 -z-0">
           <div className="absolute -top-24 -left-24 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-float-slow" />
@@ -232,9 +227,7 @@ export default async function SessionPage({
         </div>
       </section>
 
-      {/* ============================================
-          CARTE VENDEUR COMPACTE
-          ============================================ */}
+      {/* CARTE VENDEUR COMPACTE */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
         <SellerInfoCard
           shop={shop}
@@ -246,9 +239,7 @@ export default async function SessionPage({
         />
       </div>
 
-      {/* ============================================
-          PRODUITS
-          ============================================ */}
+      {/* PRODUITS */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 pb-24">
         <div className="flex items-end justify-between gap-4 mb-6">
           <div>
@@ -277,9 +268,6 @@ export default async function SessionPage({
   )
 }
 
-/* ============================================
-   Empty state
-   ============================================ */
 function EmptySession({ shopSlug }: { shopSlug: string }) {
   return (
     <div className="relative bg-white rounded-3xl border border-slate-200 p-10 sm:p-16 text-center overflow-hidden animate-fade-in-up">

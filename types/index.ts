@@ -15,11 +15,25 @@ export type Shop = {
   description: string | null
   logo_url: string | null
   phone: string | null
+  address: string | null
+  postal_code: string | null
+  city: string | null
+  country: string | null
+  whatsapp: string | null
+  contact_email: string | null
+  website: string | null
+  instagram: string | null
+  tiktok: string | null
+  facebook: string | null
+  opening_hours: string | null
+  return_policy: string | null
+  shipping_policy: string | null
+  verified: boolean
+  years_experience: number | null
   delivery_payer_default: 'CLIENT' | 'SELLER'
   free_delivery_threshold: number | null
   created_at: string
 }
-
 export type Product = {
   id: string
   shop_id: string

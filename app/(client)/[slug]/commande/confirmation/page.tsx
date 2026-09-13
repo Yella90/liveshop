@@ -22,10 +22,9 @@ export default async function ConfirmationPage({
 
   const supabase = await createClient()
 
-  // ✅ Récupérer tous les champs nécessaires pour SellerInfoCard
   const { data: shop } = await supabase
     .from('shops')
-    .select('id, name, slug, description, phone, created_at')
+    .select('*')
     .eq('slug', slug)
     .maybeSingle()
 
@@ -300,7 +299,7 @@ export default async function ConfirmationPage({
           </div>
         )}
 
-        {/* ✅ CARTE VENDEUR COMPLÈTE */}
+        {/* CARTE VENDEUR COMPLÈTE */}
         <div className="mb-6 animate-fade-in-up delay-250">
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3 px-1">
             Votre vendeur
@@ -421,7 +420,7 @@ export default async function ConfirmationPage({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-            />
+              />
             </svg>
             Suivre toutes mes commandes
           </Link>
@@ -486,9 +485,6 @@ export default async function ConfirmationPage({
   )
 }
 
-/* ============================================
-   ÉTAPE
-   ============================================ */
 function Step({
   number,
   title,

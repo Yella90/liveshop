@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 type OrderItemInput = {
@@ -22,10 +22,13 @@ type CreateOrderInput = {
 
 /* ============================================
    CRÉER UNE COMMANDE
+   Utilise service_role car le client est anonyme
    ============================================ */
 export async function createOrder(input: CreateOrderInput) {
-  const supabase = await createClient()
+  // ✅ Client admin : bypass RLS
+  const supabase = createAdminClient()
 
+  // 1. Récupérer la boutique
   const { data: shop } = await supabase
     .from('shops')
     .select(
@@ -36,6 +39,7 @@ export async function createOrder(input: CreateOrderInput) {
 
   if (!shop) return { error: 'Boutique introuvable.' }
 
+  // 2. Valider les champs
   const clientName = input.clientName?.trim()
   const clientPhone = input.clientPhone?.trim()
   const clientQuarter = input.clientQuarter?.trim()
@@ -53,6 +57,7 @@ export async function createOrder(input: CreateOrderInput) {
     return { error: 'Votre panier est vide.' }
   }
 
+  // 3. Récupérer les variantes depuis la DB (source de vérité)
   const variantIds = input.items.map((i) => i.variantId)
   const { data: variants } = await supabase
     .from('product_variants')
@@ -63,6 +68,7 @@ export async function createOrder(input: CreateOrderInput) {
     return { error: 'Produits introuvables.' }
   }
 
+  // 4. Vérifier le stock et calculer le sous-total
   let subtotal = 0
   const orderItemsData: {
     productId: string
@@ -104,6 +110,7 @@ export async function createOrder(input: CreateOrderInput) {
     })
   }
 
+  // 5. Déterminer si la livraison est gratuite ou payante
   const threshold = shop.free_delivery_threshold
   const freeDelivery =
     shop.delivery_payer_default === 'SELLER' ||
@@ -112,6 +119,7 @@ export async function createOrder(input: CreateOrderInput) {
   const deliveryVisible = freeDelivery ? 'GRATUITE' : 'PAYANTE'
   const deliveryPayer = freeDelivery ? 'SELLER' : 'CLIENT'
 
+  // 6. Créer la commande
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .insert({
@@ -135,6 +143,7 @@ export async function createOrder(input: CreateOrderInput) {
     return { error: 'Erreur création commande : ' + orderError?.message }
   }
 
+  // 7. Insérer les lignes de commande
   const { error: itemsError } = await supabase
     .from('order_items')
     .insert(
@@ -155,6 +164,7 @@ export async function createOrder(input: CreateOrderInput) {
     return { error: 'Erreur lignes commande : ' + itemsError.message }
   }
 
+  // 8. Créer une notification pour le vendeur
   if (shop.user_id) {
     await supabase.from('notifications').insert({
       user_id: shop.user_id,
@@ -170,50 +180,45 @@ export async function createOrder(input: CreateOrderInput) {
 
   revalidatePath('/dashboard/commandes')
   revalidatePath('/dashboard')
-  revalidatePath(`/dashboard/sessions`)
+  revalidatePath('/dashboard/sessions')
 
   return { success: true, orderId: order.id }
 }
 
 /* ============================================
    VALIDER UNE COMMANDE
-   - Décrémente le stock
    ============================================ */
 export async function validateOrder(orderId: string) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: 'Non authentifié.' }
+  const supabase = createAdminClient()
 
+  // Vérifier que la commande existe et est EN_ATTENTE
   const { data: order } = await supabase
     .from('orders')
-    .select(
-      `
-      id, shop_id, status,
-      shops!inner(user_id),
-      order_items(id, variant_id, quantity, product_name, variant_name)
-      `
-    )
+    .select('id, shop_id, status')
     .eq('id', orderId)
     .maybeSingle()
 
   if (!order) return { error: 'Commande introuvable.' }
-  if ((order.shops as any)?.user_id !== user.id) {
-    return { error: 'Accès refusé.' }
-  }
   if (order.status !== 'EN_ATTENTE') {
     return { error: 'Cette commande a déjà été traitée.' }
   }
 
-  const items = order.order_items ?? []
+  // Récupérer les items
+  const { data: items } = await supabase
+    .from('order_items')
+    .select('variant_id, quantity, product_name, variant_name')
+    .eq('order_id', orderId)
 
+  if (!items || items.length === 0) {
+    return { error: 'Aucun article dans cette commande.' }
+  }
+
+  // Vérifier le stock
   for (const item of items) {
     if (!item.variant_id) continue
-
     const { data: variant } = await supabase
       .from('product_variants')
-      .select('id, stock, name')
+      .select('stock, name')
       .eq('id', item.variant_id)
       .maybeSingle()
 
@@ -229,6 +234,7 @@ export async function validateOrder(orderId: string) {
     }
   }
 
+  // Décrémenter le stock
   for (const item of items) {
     if (!item.variant_id) continue
 
@@ -270,40 +276,29 @@ export async function validateOrder(orderId: string) {
 
 /* ============================================
    ANNULER UNE COMMANDE
-   - Restaure le stock si CONFIRMEE ou LIVREE
    ============================================ */
 export async function cancelOrder(orderId: string, reason?: string) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: 'Non authentifié.' }
+  const supabase = createAdminClient()
 
   const { data: order } = await supabase
     .from('orders')
-    .select(
-      `
-      id, shop_id, status,
-      shops!inner(user_id),
-      order_items(variant_id, quantity, product_name, variant_name)
-      `
-    )
+    .select('id, status')
     .eq('id', orderId)
     .maybeSingle()
 
   if (!order) return { error: 'Commande introuvable.' }
-  if ((order.shops as any)?.user_id !== user.id) {
-    return { error: 'Accès refusé.' }
-  }
   if (order.status === 'ANNULEE') {
     return { error: 'Commande déjà annulée.' }
   }
 
-  const shouldRestoreStock =
-    order.status === 'CONFIRMEE' || order.status === 'LIVREE'
+  // Restaurer le stock si CONFIRMEE ou LIVREE
+  if (order.status === 'CONFIRMEE' || order.status === 'LIVREE') {
+    const { data: items } = await supabase
+      .from('order_items')
+      .select('variant_id, quantity')
+      .eq('order_id', orderId)
 
-  if (shouldRestoreStock) {
-    for (const item of order.order_items ?? []) {
+    for (const item of items ?? []) {
       if (!item.variant_id) continue
 
       const { data: variant } = await supabase
@@ -346,34 +341,22 @@ export async function cancelOrder(orderId: string, reason?: string) {
 }
 
 /* ============================================
-   ✅ MARQUER COMME LIVREE
-   - Passe le statut à LIVREE
-   - ✅ Marque automatiquement comme PAYÉE
-     (une commande livrée est considérée payée)
+   MARQUER COMME LIVREE
    ============================================ */
 export async function markOrderAsDelivered(orderId: string) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: 'Non authentifié.' }
+  const supabase = createAdminClient()
 
   const { data: order } = await supabase
     .from('orders')
-    .select('id, status, payment_status, shops!inner(user_id)')
+    .select('id, status, payment_status')
     .eq('id', orderId)
     .maybeSingle()
 
   if (!order) return { error: 'Commande introuvable.' }
-  if ((order.shops as any)?.user_id !== user.id) {
-    return { error: 'Accès refusé.' }
-  }
   if (order.status !== 'CONFIRMEE') {
     return { error: "La commande doit être confirmée d'abord." }
   }
 
-  // ✅ Une commande livrée est automatiquement payée.
-  //    Si elle était déjà payée manuellement, on garde ce statut.
   const newPaymentStatus =
     order.payment_status === 'PAYE_MANUELLEMENT'
       ? 'PAYE_MANUELLEMENT'
@@ -396,38 +379,25 @@ export async function markOrderAsDelivered(orderId: string) {
 }
 
 /* ============================================
-   ✅ MARQUER COMME PAYÉE (manuellement)
-   - Peut se faire AVANT la livraison
-   - Statuts autorisés : EN_ATTENTE, CONFIRMEE
-   - Si la commande est déjà LIVREE, elle est déjà payée
+   MARQUER COMME PAYEE
    ============================================ */
 export async function markOrderAsPaid(orderId: string) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: 'Non authentifié.' }
+  const supabase = createAdminClient()
 
   const { data: order } = await supabase
     .from('orders')
-    .select('id, status, payment_status, shops!inner(user_id)')
+    .select('id, status, payment_status')
     .eq('id', orderId)
     .maybeSingle()
 
   if (!order) return { error: 'Commande introuvable.' }
-  if ((order.shops as any)?.user_id !== user.id) {
-    return { error: 'Accès refusé.' }
-  }
 
-  // Si la commande est livrée, elle est déjà considérée comme payée
   if (order.status === 'LIVREE') {
     return {
-      error:
-        'Cette commande est déjà livrée et donc considérée comme payée.',
+      error: 'Cette commande est déjà livrée et payée.',
     }
   }
 
-  // Si déjà payée manuellement, ne rien faire
   if (order.payment_status === 'PAYE_MANUELLEMENT') {
     return { error: 'Cette commande est déjà marquée comme payée.' }
   }

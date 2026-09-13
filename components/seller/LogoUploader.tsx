@@ -3,6 +3,10 @@
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { uploadShopLogo, deleteShopLogo } from '@/lib/actions/upload-logo'
+import {
+  compressImage,
+  formatBytes,
+} from '@/lib/utils/image-compression'
 
 export default function LogoUploader({
   shopSlug,
@@ -20,23 +24,66 @@ export default function LogoUploader({
 
   async function handleFile(file: File) {
     setUploading(true)
-    const toastId = toast.loading('Upload du logo...')
+    const toastId = toast.loading('Compression du logo...')
 
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('shopSlug', shopSlug)
+    try {
+      // ✅ Étape 1 : compression
+      const compression = await compressImage(file, 'logo')
 
-    const result = await uploadShopLogo(formData)
+      // ❌ Compression échouée
+      if (!compression.success) {
+        toast.error(compression.error, { id: toastId })
+        setUploading(false)
+        return
+      }
 
-    if (result?.error) {
-      toast.error(result.error, { id: toastId })
+      // ⚠️ Avertissement éventuel
+      if (compression.warning) {
+        toast.info(compression.warning, { id: toastId, duration: 3000 })
+      }
+
+      // ✅ Étape 2 : upload
+      toast.loading(
+        `Upload... ${formatBytes(compression.originalSize)} → ${formatBytes(
+          compression.compressedSize
+        )}`,
+        { id: toastId }
+      )
+
+      const formData = new FormData()
+      formData.append('file', compression.file) // ← on utilise compression.file
+      formData.append('shopSlug', shopSlug)
+
+      const result = await uploadShopLogo(formData)
+
+      if (result?.error) {
+        toast.error(result.error, { id: toastId })
+        setUploading(false)
+        return
+      }
+
+      if (!result?.logoUrl) {
+        toast.error("Aucune URL retournée par l'upload.", { id: toastId })
+        setUploading(false)
+        return
+      }
+
+      setLogoUrl(result.logoUrl)
+
+      toast.success(
+        compression.reduction > 0
+          ? `Logo uploadé ! (-${compression.reduction}% · ${formatBytes(
+              compression.compressedSize
+            )})`
+          : 'Logo uploadé !',
+        { id: toastId }
+      )
+    } catch (err: any) {
+      console.error('Logo upload error:', err)
+      toast.error(err?.message || "Erreur lors de l'upload", { id: toastId })
+    } finally {
       setUploading(false)
-      return
     }
-
-    setLogoUrl(result.logoUrl!)
-    toast.success('Logo uploadé !', { id: toastId })
-    setUploading(false)
   }
 
   async function handleRemove() {
@@ -45,17 +92,24 @@ export default function LogoUploader({
 
     setUploading(true)
     const toastId = toast.loading('Suppression...')
-    const result = await deleteShopLogo(logoUrl)
 
-    if (result?.error) {
-      toast.error(result.error, { id: toastId })
+    try {
+      const result = await deleteShopLogo(logoUrl)
+
+      if (result?.error) {
+        toast.error(result.error, { id: toastId })
+        return
+      }
+
+      setLogoUrl(null)
+      toast.success('Logo supprimé', { id: toastId })
+    } catch (err: any) {
+      toast.error(err?.message || 'Erreur lors de la suppression', {
+        id: toastId,
+      })
+    } finally {
       setUploading(false)
-      return
     }
-
-    setLogoUrl(null)
-    toast.success('Logo supprimé', { id: toastId })
-    setUploading(false)
   }
 
   function handleDrop(e: React.DragEvent) {
@@ -106,7 +160,7 @@ export default function LogoUploader({
             <div className="flex flex-col items-center gap-1.5">
               <div className="w-6 h-6 border-2 border-slate-300 border-t-indigo-500 rounded-full animate-spin" />
               <p className="text-[9px] text-slate-500 font-medium">
-                Upload...
+                Traitement...
               </p>
             </div>
           ) : logoUrl ? (
@@ -117,7 +171,6 @@ export default function LogoUploader({
                 alt={shopName}
                 className="w-full h-full object-cover"
               />
-              {/* Overlay au survol */}
               <div className="absolute inset-0 bg-slate-900/60 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                 <svg
                   className="w-6 h-6 text-white"
@@ -161,7 +214,7 @@ export default function LogoUploader({
           )}
         </div>
 
-        {/* Actions + aide */}
+        {/* Actions */}
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap gap-2">
             <button
@@ -212,9 +265,11 @@ export default function LogoUploader({
           </div>
 
           <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">
-            Format carré conseillé · PNG / JPG / WEBP
+            Format carré conseillé · PNG / JPG / WEBP · Max 25 Mo
             <br />
-            Taille max : 2 Mo
+            <span className="text-emerald-600 font-semibold">
+              ✨ Compression automatique (max 150 Ko)
+            </span>
           </p>
         </div>
       </div>

@@ -2,10 +2,14 @@
 
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { createClient } from '@/lib/supabase/clients'
 import {
-  uploadProductImage,
-  deleteProductImage,
-} from '@/lib/actions/upload'
+  compressImage,
+  formatBytes,
+  getReductionPercent,
+} from '@/lib/utils/image-compression'
+
+const BUCKET = 'product-images'
 
 export default function ImageUploader({
   shopSlug,
@@ -21,6 +25,7 @@ export default function ImageUploader({
   const [uploading, setUploading] = useState(false)
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const supabase = createClient()
 
   async function handleFiles(files: FileList | File[]) {
     const list = Array.from(files)
@@ -34,48 +39,84 @@ export default function ImageUploader({
     const toUpload = list.slice(0, remaining)
     if (list.length > remaining) {
       toast.info(
-        `Seules les ${remaining} premières images ont été ajoutées`
+        `Seules les ${remaining} premières images seront ajoutées`
       )
     }
 
     setUploading(true)
     const toastId = toast.loading(
-      `Upload de ${toUpload.length} image${
-        toUpload.length > 1 ? 's' : ''
-      }...`
+      `Traitement de ${toUpload.length} image(s)...`
     )
 
     const uploaded: string[] = []
+    let totalOriginal = 0
+    let totalCompressed = 0
     const errors: string[] = []
 
     for (const file of toUpload) {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('shopSlug', shopSlug)
+      try {
+        // ✅ Étape 1 : compression
+        const compression = await compressImage(file, 'product')
 
-      const result = await uploadProductImage(formData)
-      if (result?.error) {
-        errors.push(`${file.name} : ${result.error}`)
-      } else if (result?.url) {
-        uploaded.push(result.url)
+        if (!compression.success) {
+          errors.push(`${file.name} : ${compression.error}`)
+          continue
+        }
+
+        if (compression.warning) {
+          toast.info(compression.warning, { duration: 3000 })
+        }
+
+        totalOriginal += compression.originalSize
+        totalCompressed += compression.compressedSize
+
+        // ✅ Étape 2 : upload
+        const compressedFile = compression.file
+
+        const ext =
+          compressedFile.name.split('.').pop()?.toLowerCase() || 'webp'
+        const fileName = `${shopSlug}/${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2, 8)}.${ext}`
+
+        const { error: uploadError } = await supabase.storage
+          .from(BUCKET)
+          .upload(fileName, compressedFile, {
+            contentType: compressedFile.type,
+            upsert: false,
+          })
+
+        if (uploadError) {
+          errors.push(`${file.name} : ${uploadError.message}`)
+          continue
+        }
+
+        const { data } = supabase.storage
+          .from(BUCKET)
+          .getPublicUrl(fileName)
+
+        uploaded.push(data.publicUrl)
+      } catch (err: any) {
+        console.error('Upload error:', err)
+        errors.push(`${file.name} : ${err?.message || 'erreur inconnue'}`)
       }
     }
 
     if (uploaded.length > 0) {
       onChange([...images, ...uploaded])
+
+      const reduction = getReductionPercent(totalOriginal, totalCompressed)
       toast.success(
-        `${uploaded.length} image${
-          uploaded.length > 1 ? 's' : ''
-        } ajoutée${uploaded.length > 1 ? 's' : ''}`,
+        `${uploaded.length} image(s) ajoutée(s) · -${reduction}% (${formatBytes(
+          totalCompressed
+        )})`,
         { id: toastId }
       )
     } else {
       toast.dismiss(toastId)
     }
 
-    if (errors.length > 0) {
-      errors.forEach((err) => toast.error(err))
-    }
+    errors.forEach((err) => toast.error(err))
 
     setUploading(false)
   }
@@ -86,42 +127,41 @@ export default function ImageUploader({
     const next = images.filter((u) => u !== url)
     onChange(next)
 
-    const toastId = toast.loading('Suppression...')
-    const result = await deleteProductImage(url)
+    const marker = `/storage/v1/object/public/${BUCKET}/`
+    const idx = url.indexOf(marker)
+    if (idx === -1) return
 
-    if (result?.error) {
-      toast.error(result.error, { id: toastId })
-      // Restaurer en cas d'échec
+    const path = url.slice(idx + marker.length)
+
+    const { error } = await supabase.storage.from(BUCKET).remove([path])
+
+    if (error) {
+      toast.error(error.message)
       onChange(images)
     } else {
-      toast.success('Image supprimée', { id: toastId })
+      toast.success('Image supprimée')
     }
   }
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
     setDragging(false)
-    if (e.dataTransfer.files?.length) {
-      handleFiles(e.dataTransfer.files)
-    }
-  }
-
-  function handleDragOver(e: React.DragEvent) {
-    e.preventDefault()
-    setDragging(true)
-  }
-
-  function handleDragLeave(e: React.DragEvent) {
-    e.preventDefault()
-    setDragging(false)
+    if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files)
   }
 
   return (
     <div className="space-y-3">
+      {/* Zone de drop */}
       <div
         onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
+        onDragOver={(e) => {
+          e.preventDefault()
+          setDragging(true)
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault()
+          setDragging(false)
+        }}
         onClick={() => !uploading && inputRef.current?.click()}
         className={`relative flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
           dragging
@@ -132,7 +172,7 @@ export default function ImageUploader({
         <input
           ref={inputRef}
           type="file"
-          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+          accept="image/jpeg,image/png,image/webp"
           multiple
           className="hidden"
           onChange={(e) => {
@@ -144,7 +184,9 @@ export default function ImageUploader({
         {uploading ? (
           <>
             <div className="w-6 h-6 border-2 border-slate-300 border-t-indigo-500 rounded-full animate-spin" />
-            <p className="text-sm text-slate-600">Upload en cours...</p>
+            <p className="text-sm text-slate-600">
+              Compression et upload...
+            </p>
           </>
         ) : (
           <>
@@ -167,12 +209,16 @@ export default function ImageUploader({
               Cliquez ou glissez vos images ici
             </p>
             <p className="text-xs text-slate-500">
-              JPG, PNG, WEBP, GIF · Max 5 Mo · {images.length}/{maxImages}
+              JPG, PNG, WEBP · {images.length}/{maxImages}
+            </p>
+            <p className="text-[10px] text-emerald-600 font-semibold">
+              ✨ Compression automatique activée
             </p>
           </>
         )}
       </div>
 
+      {/* Prévisualisation */}
       {images.length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           {images.map((url, index) => (

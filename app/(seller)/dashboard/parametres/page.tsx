@@ -6,6 +6,8 @@ export const metadata = {
   title: 'Paramètres — LiveShop',
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function ParametresPage() {
   const supabase = await createClient()
   const {
@@ -22,6 +24,9 @@ export default async function ParametresPage() {
 
   if (!shop) redirect('/onboarding')
 
+  // ✅ Clé unique qui change quand le shop est modifié
+  const shopKey = `${shop.id}-${shop.name}-${shop.updated_at ?? shop.created_at}`
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
@@ -33,7 +38,8 @@ export default async function ParametresPage() {
         </p>
       </div>
 
-      <ShopSettingsForm shop={shop} />
+      {/* ✅ La key force React à re-créer le formulaire avec les nouvelles valeurs */}
+      <ShopSettingsForm key={shopKey} shop={shop} />
     </div>
   )
 }

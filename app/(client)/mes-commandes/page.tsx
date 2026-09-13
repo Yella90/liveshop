@@ -3,7 +3,10 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { useMyOrders, type StoredOrder } from '@/lib/hooks/useMyOrders'
+import {
+  useMyOrders,
+  type StoredOrder,
+} from '@/lib/hooks/useMyOrders'
 import { fetchMyOrders } from '@/lib/actions/my-orders'
 
 type LiveOrder = {
@@ -87,6 +90,16 @@ export default function MesCommandesPage() {
     )
   }
 
+  // Déterminer la boutique pour le lien retour
+  const firstShop = liveOrders[0]?.shops
+  const fallbackShopSlug = storedOrders[0]?.shopSlug
+
+  const backUrl = firstShop?.slug
+    ? `/${firstShop.slug}/boutique`
+    : fallbackShopSlug
+      ? `/${fallbackShopSlug}/boutique`
+      : null
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
@@ -100,12 +113,20 @@ export default function MesCommandesPage() {
               Mes commandes
             </span>
           </div>
-          <Link
-            href="/"
-            className="text-sm font-medium text-slate-500 hover:text-slate-900"
-          >
-            Accueil
-          </Link>
+
+          {/* ✅ Retour uniquement vers la boutique d'origine */}
+          {backUrl ? (
+            <Link
+              href={backUrl}
+              className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+            >
+              ← Retour à la boutique
+            </Link>
+          ) : (
+            <span className="text-sm font-medium text-slate-400">
+              Suivi de commandes
+            </span>
+          )}
         </div>
       </header>
 
@@ -162,15 +183,9 @@ export default function MesCommandesPage() {
               Aucune commande
             </h2>
             <p className="text-sm text-slate-500 mt-2 max-w-sm mx-auto">
-              Vos commandes passeront ici automatiquement après chaque
+              Vos commandes apparaîtront ici automatiquement après chaque
               achat.
             </p>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 mt-6 bg-slate-900 text-white font-semibold px-5 py-3 rounded-xl hover:bg-slate-800 transition-colors"
-            >
-              Découvrir les boutiques
-            </Link>
           </div>
         )}
 
@@ -342,7 +357,6 @@ function OrderCard({
           </div>
         )}
 
-        {/* Statuts détaillés */}
         {!loading && statusInfo.step > 0 && (
           <div className="mt-2 flex justify-between text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
             <span className={statusInfo.step >= 1 ? 'text-indigo-600' : ''}>
@@ -397,6 +411,7 @@ function OrderCard({
           <span className="text-xs font-medium text-slate-500">FCFA</span>
         </p>
 
+        {/* ✅ Liens uniquement vers la boutique du vendeur */}
         <div className="flex items-center gap-2">
           {live?.shops?.phone && (
             <a
@@ -425,6 +440,19 @@ function OrderCard({
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors"
             >
               Voir la boutique
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
             </Link>
           )}
         </div>

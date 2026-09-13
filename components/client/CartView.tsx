@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useCart } from '@/lib/hooks/useCart'
 import { createOrder } from '@/lib/actions/orders'
+import { useMyOrders } from '@/lib/hooks/useMyOrders'
 
 type Shop = {
   id: string
@@ -25,6 +26,10 @@ export default function CartView({
   sessionSlug: string | null
 }) {
   const router = useRouter()
+
+  // ✅ Hook appelé en haut du composant (règle des Hooks)
+  const { saveOrder } = useMyOrders()
+
   const {
     items,
     sessionSlug: cartSessionSlug,
@@ -118,8 +123,18 @@ export default function CartView({
     }
 
     if (result?.success && result.orderId) {
+      // ✅ Save order APRÈS avoir le résultat
+      saveOrder({
+        id: result.orderId,
+        shopSlug: shop.slug,
+        shopName: shop.name,
+        total: totalPrice,
+        createdAt: new Date().toISOString(),
+      })
+
       toast.success('Commande envoyée !', { id: toastId })
       clearCart()
+
       const url = sessionSlug
         ? `/${shop.slug}/commande/confirmation?order=${result.orderId}&session=${sessionSlug}`
         : `/${shop.slug}/commande/confirmation?order=${result.orderId}`
@@ -150,7 +165,6 @@ export default function CartView({
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-        {/* Header */}
         <header className="sticky top-0 z-40 glass border-b border-white/20">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
             <Link
@@ -183,16 +197,13 @@ export default function CartView({
                   {shop.name.charAt(0).toUpperCase()}
                 </span>
               </div>
-              <h1 className="text-sm font-bold text-slate-900">
-                Panier
-              </h1>
+              <h1 className="text-sm font-bold text-slate-900">Panier</h1>
             </div>
 
             <div className="w-10" />
           </div>
         </header>
 
-        {/* Empty state */}
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
           <div className="relative bg-white rounded-3xl border border-slate-200 p-10 sm:p-16 text-center overflow-hidden animate-fade-in-up">
             <div className="absolute -top-20 -right-20 w-64 h-64 bg-indigo-100/50 rounded-full blur-3xl" />
@@ -264,9 +275,7 @@ export default function CartView({
      ============================================ */
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* ============================================
-          HEADER STICKY
-          ============================================ */}
+      {/* HEADER STICKY */}
       <header className="sticky top-0 z-40 glass border-b border-white/20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <Link
@@ -294,9 +303,7 @@ export default function CartView({
           </Link>
 
           <div className="flex items-center gap-2">
-            <h1 className="text-sm font-bold text-slate-900">
-              Panier
-            </h1>
+            <h1 className="text-sm font-bold text-slate-900">Panier</h1>
             <span className="min-w-5 h-5 px-1.5 rounded-full bg-slate-900 text-white text-[10px] font-bold flex items-center justify-center">
               {totalItems}
             </span>
@@ -310,11 +317,8 @@ export default function CartView({
         onSubmit={handleSubmit}
         className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-5 pb-32"
       >
-        {/* ============================================
-            ARTICLES
-            ============================================ */}
+        {/* ARTICLES */}
         <section className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
-          {/* Header section */}
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
@@ -350,7 +354,6 @@ export default function CartView({
             </button>
           </div>
 
-          {/* Liste */}
           <div className="divide-y divide-slate-100">
             {items.map((item, index) => (
               <div
@@ -358,7 +361,6 @@ export default function CartView({
                 className="p-4 sm:p-5 flex items-center gap-3 sm:gap-4 hover:bg-slate-50/50 transition-colors animate-fade-in"
                 style={{ animationDelay: `${Math.min(index * 50, 300)}ms` }}
               >
-                {/* Image */}
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-100 overflow-hidden shrink-0 relative group">
                   {item.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -386,7 +388,6 @@ export default function CartView({
                   )}
                 </div>
 
-                {/* Infos */}
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate">
                     {item.productName}
@@ -403,9 +404,7 @@ export default function CartView({
                   </p>
                 </div>
 
-                {/* Actions */}
                 <div className="flex flex-col items-end gap-2 shrink-0">
-                  {/* Quantité */}
                   <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
                     <button
                       type="button"
@@ -456,7 +455,6 @@ export default function CartView({
                     </button>
                   </div>
 
-                  {/* Supprimer */}
                   <button
                     type="button"
                     onClick={() => removeFromCart(item.variantId)}
@@ -470,9 +468,7 @@ export default function CartView({
           </div>
         </section>
 
-        {/* ============================================
-            FORMULAIRE CLIENT
-            ============================================ */}
+        {/* FORMULAIRE CLIENT */}
         <section className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-5">
             <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center">
@@ -712,11 +708,8 @@ export default function CartView({
           </div>
         </section>
 
-        {/* ============================================
-            RÉCAPITULATIF
-            ============================================ */}
+        {/* RÉCAPITULATIF */}
         <section className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-5 sm:p-6 text-white shadow-xl shadow-slate-900/20 overflow-hidden relative">
-          {/* Blobs décoratifs */}
           <div className="absolute -top-20 -right-20 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative">
@@ -810,9 +803,7 @@ export default function CartView({
           </div>
         </section>
 
-        {/* ============================================
-            ERREUR
-            ============================================ */}
+        {/* ERREUR */}
         {error && (
           <div className="p-4 bg-red-50 border border-red-200 rounded-2xl animate-fade-in">
             <p className="text-sm text-red-700 flex items-start gap-2 font-medium">
@@ -834,9 +825,7 @@ export default function CartView({
           </div>
         )}
 
-        {/* ============================================
-            BOUTON SOUMETTRE
-            ============================================ */}
+        {/* BOUTON SOUMETTRE */}
         <button
           type="submit"
           disabled={loading}
@@ -873,9 +862,7 @@ export default function CartView({
         </p>
       </form>
 
-      {/* ============================================
-          MODAL VIDER PANIER
-          ============================================ */}
+      {/* MODAL VIDER PANIER */}
       {confirmClear && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
@@ -964,7 +951,6 @@ function DeliveryOption({
           : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'
       }`}
     >
-      {/* Check */}
       {active && (
         <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center animate-fade-in">
           <svg

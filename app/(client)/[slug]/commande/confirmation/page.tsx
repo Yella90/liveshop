@@ -2,20 +2,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { RESERVED_SLUGS } from '@/lib/constants'
-import VisitTracker from '@/components/client/VisitTracker'
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
-  const { slug } = await params
-  if (RESERVED_SLUGS.includes(slug)) return {}
-
-  return {
-    title: 'Commande confirmée — LiveShop',
-    description: 'Votre commande a bien été envoyée au vendeur.',
-  }
+export const metadata = {
+  title: 'Commande confirmée — LiveShop',
 }
 
 export default async function ConfirmationPage({
@@ -54,11 +43,9 @@ export default async function ConfirmationPage({
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-slate-50 relative overflow-hidden">
       {/* ============================================
-          CONFETTIS DÉCORATIFS (CSS PUR)
+          CONFETTIS DÉCORATIFS
           ============================================ */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <VisitTracker shopSlug={slug} />
-        {/* Cercles flottants */}
         <div className="absolute top-10 left-[10%] w-3 h-3 rounded-full bg-emerald-400/60 animate-float-slow" />
         <div className="absolute top-24 right-[15%] w-2 h-2 rounded-full bg-indigo-400/60 animate-float delay-500" />
         <div className="absolute top-40 left-[20%] w-2.5 h-2.5 rounded-full bg-amber-400/60 animate-float-slow delay-700" />
@@ -66,19 +53,6 @@ export default async function ConfirmationPage({
         <div className="absolute top-56 left-[8%] w-2 h-2 rounded-full bg-violet-400/60 animate-float-slow delay-300" />
         <div className="absolute top-32 right-[8%] w-2.5 h-2.5 rounded-full bg-emerald-500/60 animate-float delay-900" />
 
-        {/* Étoiles */}
-        <div className="absolute top-20 left-[35%] text-amber-400/70 animate-pulse">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-        </div>
-        <div className="absolute top-44 right-[30%] text-amber-400/70 animate-pulse delay-500">
-          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-        </div>
-
-        {/* Blobs */}
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-emerald-200/40 rounded-full blur-3xl animate-float-slow" />
         <div className="absolute -top-20 -right-32 w-96 h-96 bg-indigo-200/40 rounded-full blur-3xl animate-float delay-1000" />
       </div>
@@ -88,26 +62,17 @@ export default async function ConfirmationPage({
             SUCCÈS
             ============================================ */}
         <div className="text-center mb-10 animate-fade-in-up">
-          {/* Icône succès avec animation */}
           <div className="relative inline-flex items-center justify-center mb-6">
-            {/* Halo pulsant */}
             <div className="absolute inset-0 rounded-full bg-emerald-500/30 animate-ping" />
             <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-pulse" />
 
-            {/* Cercle principal */}
-            <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-2xl shadow-emerald-500/40 animate-scale-in">
+            <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-2xl shadow-emerald-500/40">
               <svg
                 className="w-12 h-12 sm:w-14 sm:h-14 text-white"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth={3}
                 viewBox="0 0 24 24"
-                style={{
-                  strokeDasharray: 30,
-                  strokeDashoffset: 0,
-                  animation: 'fade-in 0.4s ease-out 0.3s forwards',
-                  opacity: 0,
-                }}
               >
                 <path
                   strokeLinecap="round"
@@ -117,7 +82,6 @@ export default async function ConfirmationPage({
               </svg>
             </div>
 
-            {/* Badges décoratifs */}
             <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center shadow-lg animate-bounce-subtle">
               <svg
                 className="w-4 h-4 text-white"
@@ -164,7 +128,6 @@ export default async function ConfirmationPage({
             plus brefs délais.
           </p>
 
-          {/* Numéro de commande */}
           {order && (
             <div className="inline-flex items-center gap-2 mt-5 bg-white border border-slate-200 rounded-full px-4 py-2 shadow-sm">
               <svg
@@ -188,13 +151,60 @@ export default async function ConfirmationPage({
         </div>
 
         {/* ============================================
+            BOUTON SUIVI
+            ============================================ */}
+        <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-3xl p-5 sm:p-6 mb-6 text-white shadow-xl shadow-indigo-500/20 animate-fade-in-up delay-100">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0">
+              <svg
+                className="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold">
+                Suivez votre commande
+              </p>
+              <p className="text-xs text-indigo-100 mt-0.5">
+                Consultez l&apos;évolution en temps réel
+              </p>
+            </div>
+            <Link
+              href="/mes-commandes"
+              className="shrink-0 inline-flex items-center gap-2 bg-white text-indigo-700 font-bold px-4 py-2.5 rounded-xl hover:bg-indigo-50 active:scale-95 transition-all text-sm"
+            >
+              Suivre
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
+              </svg>
+            </Link>
+          </div>
+        </div>
+
+        {/* ============================================
             RÉCAPITULATIF
             ============================================ */}
         {order && (
-          <div
-            className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm mb-6 animate-fade-in-up delay-200"
-          >
-            {/* Header */}
+          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm mb-6 animate-fade-in-up delay-200">
             <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
@@ -224,12 +234,11 @@ export default async function ConfirmationPage({
               </div>
             </div>
 
-            {/* Liste des articles */}
             <div className="divide-y divide-slate-100">
               {order.order_items?.map((item: any, index: number) => (
                 <div
                   key={item.id}
-                  className="px-5 sm:px-6 py-3.5 flex items-center justify-between gap-4 animate-fade-in"
+                  className="px-5 sm:px-6 py-3.5 flex items-center justify-between gap-4"
                   style={{ animationDelay: `${300 + index * 50}ms` }}
                 >
                   <div className="min-w-0 flex items-center gap-3">
@@ -257,7 +266,6 @@ export default async function ConfirmationPage({
               ))}
             </div>
 
-            {/* Totaux */}
             <div className="px-5 sm:px-6 py-4 bg-gradient-to-br from-slate-50 to-slate-100 border-t border-slate-200 space-y-2.5">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-600 font-medium">
@@ -304,9 +312,7 @@ export default async function ConfirmationPage({
         {/* ============================================
             PROCHAINES ÉTAPES
             ============================================ */}
-        <div
-          className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-3xl p-5 sm:p-6 mb-6 animate-fade-in-up delay-300"
-        >
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-3xl p-5 sm:p-6 mb-6 animate-fade-in-up delay-300">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
               <svg
@@ -408,8 +414,28 @@ export default async function ConfirmationPage({
             ============================================ */}
         <div className="space-y-3 animate-fade-in-up delay-500">
           <Link
-            href={`/${shop.slug}/boutique`}
+            href="/mes-commandes"
             className="group relative w-full flex items-center justify-center gap-2 bg-slate-900 text-white font-bold py-4 px-6 rounded-2xl hover:bg-slate-800 hover:shadow-2xl active:scale-[0.98] transition-all overflow-hidden btn-shine"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
+            </svg>
+            Suivre toutes mes commandes
+          </Link>
+
+          <Link
+            href={`/${shop.slug}/boutique`}
+            className="group flex items-center justify-center gap-2 w-full bg-white border-2 border-slate-200 text-slate-900 font-semibold py-3.5 px-6 rounded-2xl hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] transition-all"
           >
             <svg
               className="w-5 h-5"
@@ -425,25 +451,12 @@ export default async function ConfirmationPage({
               />
             </svg>
             Continuer mes achats
-            <svg
-              className="w-4 h-4 group-hover:translate-x-1 transition-transform"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13 7l5 5m0 0l-5 5m5-5H6"
-              />
-            </svg>
           </Link>
 
           {sessionSlug && (
             <Link
               href={`/${shop.slug}/session/${sessionSlug}`}
-              className="flex items-center justify-center gap-2 w-full bg-white border-2 border-slate-200 text-slate-900 font-semibold py-3.5 px-6 rounded-2xl hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] transition-all"
+              className="flex items-center justify-center gap-2 w-full bg-white border-2 border-slate-200 text-slate-900 font-semibold py-3.5 px-6 rounded-2xl hover:border-red-300 hover:bg-red-50 active:scale-[0.98] transition-all"
             >
               <span className="relative flex items-center justify-center">
                 <span className="absolute inline-flex h-2 w-2 rounded-full bg-red-500 opacity-75 animate-ping" />

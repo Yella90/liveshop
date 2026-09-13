@@ -26,6 +26,9 @@ export const RESERVED_SLUGS = [
   'public',
   'assets',
   'images',
+   'mes-commandes',
+  'ma-commande',
+  'suivi',
 ]
 
 export function isValidSlug(slug: string): boolean {

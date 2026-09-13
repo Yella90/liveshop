@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { RESERVED_SLUGS } from '@/lib/constants'
 import ClientProductGrid from '@/components/client/ClientProductGrid'
 import SellerInfoCard from '@/components/client/SellerInfoCard'
+import ClientMenu from '@/components/client/ClientMenu'
 
 export async function generateMetadata({
   params,
@@ -84,6 +85,7 @@ export default async function BoutiquePage({
       {/* Header sticky */}
       <header className="sticky top-0 z-40 glass border-b border-white/20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+          <ClientMenu shopSlug={slug} shopName={shop.name} />
           <Link
             href={`/${slug}`}
             className="group flex items-center gap-2 text-slate-900 hover:text-indigo-600 transition-colors"

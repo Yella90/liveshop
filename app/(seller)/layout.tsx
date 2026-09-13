@@ -20,7 +20,7 @@ export default async function SellerLayout({
 
   const { data: shop } = await supabase
     .from('shops')
-    .select('id')
+    .select('id, name')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -31,7 +31,8 @@ export default async function SellerLayout({
       <div className="flex">
         <SellerSidebar />
         <div className="flex-1 min-w-0 flex flex-col min-h-screen">
-          <SellerHeader user={user} />
+          {/* ✅ Passer le nom de la boutique */}
+          <SellerHeader user={user} shopName={shop.name} />
           <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
         </div>
       </div>

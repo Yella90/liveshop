@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import ShareQRCode from '@/components/ShareQRCode'
 
 export default function Home() {
   return (
@@ -17,6 +18,12 @@ export default function Home() {
             </span>
           </Link>
           <div className="flex items-center gap-1 sm:gap-2">
+            <Link
+              href="/aide"
+              className="hidden md:inline-flex text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-2 transition-colors"
+            >
+              Aide
+            </Link>
             <Link
               href="https://unitech-qvgo.onrender.com/services"
               target="_blank"
@@ -54,14 +61,12 @@ export default function Home() {
           HERO
           ============================================ */}
       <section className="relative min-h-screen flex items-center pt-20 pb-16 overflow-hidden">
-        {/* Blobs décoratifs animés */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-20 -left-20 w-96 h-96 bg-indigo-400/30 rounded-full blur-3xl animate-float-slow" />
           <div className="absolute top-40 -right-20 w-96 h-96 bg-violet-400/30 rounded-full blur-3xl animate-float delay-1000" />
           <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-pink-400/20 rounded-full blur-3xl animate-float-slow delay-500" />
         </div>
 
-        {/* Grille de fond subtile */}
         <div
           className="absolute inset-0 -z-10 opacity-[0.03]"
           style={{
@@ -73,7 +78,6 @@ export default function Home() {
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Colonne gauche — Texte */}
             <div>
               <div className="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-700 text-xs font-semibold uppercase tracking-wide px-3.5 py-2 rounded-full mb-6 shadow-sm animate-fade-in-up">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -83,9 +87,7 @@ export default function Home() {
               <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black text-slate-900 leading-[1.05] tracking-tight animate-fade-in-up delay-100">
                 Faites votre live.
                 <br />
-                <span className="text-gradient">
-                  Nous gérons tout.
-                </span>
+                <span className="text-gradient">Nous gérons tout.</span>
               </h1>
 
               <p className="text-lg sm:text-xl text-slate-600 mt-6 max-w-xl leading-relaxed animate-fade-in-up delay-200">
@@ -125,7 +127,6 @@ export default function Home() {
                 </Link>
               </div>
 
-              {/* Trust */}
               <div className="flex items-center gap-4 mt-10 animate-fade-in-up delay-400">
                 <div className="flex -space-x-2">
                   {['F', 'A', 'M', 'S'].map((initial, i) => (
@@ -156,21 +157,16 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Colonne droite — Mockup visuel */}
             <div className="relative animate-fade-in-up delay-300">
               <div className="relative">
-                {/* Halo lumineux */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 via-violet-500 to-pink-500 rounded-3xl blur-3xl opacity-30 animate-pulse-glow" />
 
-                {/* Téléphone */}
                 <div className="relative bg-white rounded-[2.5rem] shadow-2xl p-3 border border-slate-200 rotate-3 hover:rotate-0 transition-transform duration-700">
                   <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[2rem] p-4 aspect-[9/19] flex flex-col">
-                    {/* Notch */}
                     <div className="flex justify-center mb-4">
                       <div className="w-20 h-5 bg-black rounded-full" />
                     </div>
 
-                    {/* Bandeau live */}
                     <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-xl p-3 mb-3">
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
@@ -180,9 +176,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Contenu */}
                     <div className="flex-1 space-y-2">
-                      {/* Produit 1 */}
                       <div className="bg-white/10 backdrop-blur rounded-xl p-3 animate-fade-in delay-500">
                         <div className="flex items-center gap-2">
                           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-400 to-pink-600" />
@@ -212,7 +206,6 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* Produit 2 */}
                       <div className="bg-white/10 backdrop-blur rounded-xl p-3 animate-fade-in delay-700">
                         <div className="flex items-center gap-2">
                           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-400 to-indigo-600" />
@@ -242,7 +235,6 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* Notification */}
                       <div className="bg-emerald-500/20 border border-emerald-400/30 backdrop-blur rounded-xl p-2.5 animate-fade-in delay-1000">
                         <p className="text-white text-[10px] font-semibold flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -251,7 +243,6 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Barre panier */}
                     <div className="bg-white rounded-xl p-3 mt-3">
                       <div className="flex items-center justify-between">
                         <span className="text-slate-900 text-xs font-bold">
@@ -265,7 +256,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Badges flottants */}
                 <div className="absolute -top-4 -right-4 bg-white rounded-2xl shadow-xl p-3 animate-float border border-slate-100">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
@@ -328,7 +318,7 @@ export default function Home() {
       </section>
 
       {/* ============================================
-          MARQUEE — Défilement infini
+          MARQUEE
           ============================================ */}
       <section className="py-8 border-y border-slate-200 bg-white overflow-hidden">
         <div className="flex animate-marquee whitespace-nowrap">
@@ -362,12 +352,10 @@ export default function Home() {
       <section className="relative py-20 sm:py-28 overflow-hidden">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-[2.5rem] p-8 sm:p-14 overflow-hidden shadow-2xl">
-            {/* Blobs animés */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl animate-float-slow" />
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-500/20 rounded-full blur-3xl animate-float delay-700" />
 
             <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-              {/* Texte */}
               <div>
                 <div className="inline-flex items-center gap-2 glass-dark text-white text-xs font-semibold uppercase tracking-wide px-3.5 py-2 rounded-full mb-6">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -445,7 +433,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Cartes services */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <UnitechServiceCard
                   title="Développement Web & SaaS"
@@ -482,7 +469,6 @@ export default function Home() {
           ============================================ */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-20 sm:pb-28">
         <div className="relative group">
-          {/* Halo lumineux */}
           <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-pink-500 rounded-3xl blur-lg opacity-30 group-hover:opacity-60 transition-opacity duration-500" />
 
           <div className="relative bg-white rounded-3xl border border-slate-200 p-8 sm:p-10">
@@ -511,13 +497,9 @@ export default function Home() {
                   Besoin d'aide ? Parlez à nos agents IA
                 </h3>
                 <p className="text-slate-500 mt-2 text-sm sm:text-base">
-                  <span className="font-semibold text-slate-700">
-                    DONA
-                  </span>{' '}
+                  <span className="font-semibold text-slate-700">DONA</span>{' '}
                   et{' '}
-                  <span className="font-semibold text-slate-700">
-                    HARVEY
-                  </span>{' '}
+                  <span className="font-semibold text-slate-700">HARVEY</span>{' '}
                   vous renseignent 24/7 sur nos services, projets et
                   formations.
                 </p>
@@ -620,6 +602,28 @@ export default function Home() {
               delay={500}
             />
           </div>
+
+          <div className="text-center mt-12">
+            <Link
+              href="/aide-vendeur"
+              className="inline-flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+            >
+              Voir le guide complet du vendeur
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
+              </svg>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -629,11 +633,9 @@ export default function Home() {
       <section className="px-4 sm:px-6 pb-20 sm:pb-28">
         <div className="max-w-6xl mx-auto">
           <div className="relative bg-gradient-to-br from-indigo-600 via-violet-600 to-pink-600 rounded-[2.5rem] p-8 sm:p-16 text-center overflow-hidden shadow-2xl animate-gradient">
-            {/* Formes décoratives */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-2xl animate-float-slow" />
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-2xl animate-float delay-500" />
 
-            {/* Petites étoiles */}
             <div className="absolute top-8 left-12 w-1 h-1 rounded-full bg-white/80 animate-pulse" />
             <div className="absolute top-20 right-20 w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse delay-300" />
             <div className="absolute bottom-16 left-1/4 w-1 h-1 rounded-full bg-white/80 animate-pulse delay-700" />
@@ -682,13 +684,45 @@ export default function Home() {
       </section>
 
       {/* ============================================
+          ✅ PARTAGER LIVESHOP — QR CODE
+          ============================================ */}
+      <section className="px-4 sm:px-6 pb-20 sm:pb-28">
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 sm:p-12 overflow-hidden relative">
+            {/* Blob décoratif */}
+            <div className="absolute -top-20 -right-20 w-64 h-64 bg-indigo-100/50 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-violet-100/50 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative">
+              {/* En-tête */}
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-wide px-3.5 py-1.5 rounded-full mb-4">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                  Partager LiveShop
+                </div>
+                <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+                  Faites découvrir la plateforme
+                </h2>
+                <p className="text-slate-500 mt-3 max-w-xl mx-auto text-sm sm:text-base">
+                  Partagez ce QR code ou ce lien avec vos amis, votre
+                  famille ou sur vos réseaux sociaux.
+                </p>
+              </div>
+
+              {/* QR Code + Liens */}
+              <ShareQRCode />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================
           FOOTER
           ============================================ */}
       <footer className="border-t border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-14">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-            {/* Logo */}
-            <div>
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-10">
+            <div className="col-span-2 sm:col-span-2 lg:col-span-1">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
                   <span className="text-white font-bold text-sm">L</span>
@@ -703,7 +737,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Produit */}
             <div>
               <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-wide">
                 Produit
@@ -733,6 +766,17 @@ export default function Home() {
                 </li>
                 <li>
                   <Link
+                    href="/mes-commandes"
+                    className="text-sm text-slate-500 hover:text-slate-900 transition-colors inline-flex items-center gap-1 group"
+                  >
+                    Mes commandes
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      →
+                    </span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/mot-de-passe-oublie"
                     className="text-sm text-slate-500 hover:text-slate-900 transition-colors inline-flex items-center gap-1 group"
                   >
@@ -745,7 +789,47 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* UNITECH */}
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-wide">
+                Aide
+              </h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link
+                    href="/aide"
+                    className="text-sm text-slate-500 hover:text-slate-900 transition-colors inline-flex items-center gap-1 group"
+                  >
+                    Centre d'aide
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      →
+                    </span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/aide-vendeur"
+                    className="text-sm text-slate-500 hover:text-slate-900 transition-colors inline-flex items-center gap-1 group"
+                  >
+                    Guide vendeur
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      →
+                    </span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/aide-client"
+                    className="text-sm text-slate-500 hover:text-slate-900 transition-colors inline-flex items-center gap-1 group"
+                  >
+                    Guide client
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      →
+                    </span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
             <div>
               <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-wide">
                 UNITECH
@@ -834,7 +918,6 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Contact */}
             <div>
               <h3 className="text-sm font-bold text-slate-900 mb-4 uppercase tracking-wide">
                 Contact
@@ -865,7 +948,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Bas du footer */}
           <div className="border-t border-slate-100 mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs text-slate-400">
               © {new Date().getFullYear()} LiveShop. Tous droits
@@ -890,7 +972,7 @@ export default function Home() {
 }
 
 /* ============================================
-   COMPOSANT : Carte service UNITECH
+   COMPOSANTS
    ============================================ */
 function UnitechServiceCard({
   title,
@@ -950,9 +1032,6 @@ function UnitechIcon({
   )
 }
 
-/* ============================================
-   COMPOSANT : Statistique animée
-   ============================================ */
 function StatItem({
   value,
   label,
@@ -977,9 +1056,6 @@ function StatItem({
   )
 }
 
-/* ============================================
-   COMPOSANT : Carte fonctionnalité
-   ============================================ */
 function FeatureCard({
   icon,
   title,
@@ -996,7 +1072,6 @@ function FeatureCard({
       className="group relative bg-white rounded-2xl border border-slate-200 p-6 hover:border-slate-300 hover:shadow-2xl hover:shadow-slate-200/50 card-3d animate-fade-in-up overflow-hidden"
       style={{ animationDelay: `${delay}ms` }}
     >
-      {/* Brillance au survol */}
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/0 via-indigo-50/50 to-violet-50/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
       <div className="relative">

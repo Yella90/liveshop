@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -21,69 +22,72 @@ export default function SellerMobileMenu({
   userName?: string
 }) {
   const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
 
-  // Fermer le drawer quand on change de page
+  // ✅ Attendre le montage côté client (SSR-safe pour createPortal)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Fermer au changement de page
   useEffect(() => {
     setOpen(false)
   }, [pathname])
 
-  // Empêcher le scroll du body quand le drawer est ouvert
+  // Bloquer le scroll du body quand ouvert
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
+    if (!open) return
+
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
     return () => {
-      document.body.style.overflow = ''
+      document.body.style.overflow = originalOverflow
     }
   }, [open])
 
-  return (
-    <>
-      {/* Bouton hamburger */}
-      <button
-        onClick={() => setOpen(true)}
-        className="md:hidden p-2 -ml-2 text-slate-900 hover:text-indigo-600 transition-colors"
-        aria-label="Ouvrir le menu"
-      >
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2.5}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M4 6h16M4 12h16M4 18h16"
-          />
-        </svg>
-      </button>
+  // Fermer avec Échap
+  useEffect(() => {
+    if (!open) return
 
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [open])
+
+  /* ============================================
+     CONTENU DU PORTAL
+     ============================================ */
+  const portalContent = (
+    <>
       {/* Overlay */}
-      {open && (
-        <div
-          className="md:hidden fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm animate-fade-in"
-          onClick={() => setOpen(false)}
-        />
-      )}
+      <div
+        onClick={() => setOpen(false)}
+        className={`fixed inset-0 z-[9998] bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
+          open
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
+        }`}
+        aria-hidden={!open}
+      />
 
       {/* Drawer */}
       <aside
-        className={`md:hidden fixed top-0 left-0 bottom-0 z-[70] w-72 bg-white shadow-2xl flex flex-col transition-transform duration-300 ${
+        className={`fixed top-0 left-0 bottom-0 z-[9999] w-72 max-w-[85vw] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-out md:hidden ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
+        aria-hidden={!open}
       >
-        {/* Header du drawer */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md">
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-slate-100 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md shrink-0">
               <span className="text-white font-black text-sm">L</span>
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="font-bold text-slate-900 text-sm leading-tight">
                 LiveShop
               </p>
@@ -94,7 +98,7 @@ export default function SellerMobileMenu({
           </div>
           <button
             onClick={() => setOpen(false)}
-            className="p-2 -mr-2 text-slate-400 hover:text-slate-600"
+            className="p-2 -mr-2 text-slate-400 hover:text-slate-600 shrink-0"
             aria-label="Fermer le menu"
           >
             <svg
@@ -113,16 +117,18 @@ export default function SellerMobileMenu({
           </button>
         </div>
 
-        {/* Infos boutique + user */}
+        {/* Infos */}
         {(shopName || userName) && (
-          <div className="px-5 py-4 border-b border-slate-100 bg-slate-50">
+          <div className="px-5 py-4 border-b border-slate-100 bg-slate-50 shrink-0">
             {shopName && (
-              <p className="text-xs text-slate-500 font-medium">Boutique</p>
-            )}
-            {shopName && (
-              <p className="text-sm font-bold text-slate-900 truncate">
-                {shopName}
-              </p>
+              <>
+                <p className="text-xs text-slate-500 font-medium">
+                  Boutique
+                </p>
+                <p className="text-sm font-bold text-slate-900 truncate">
+                  {shopName}
+                </p>
+              </>
             )}
             {userName && (
               <p className="text-xs text-slate-500 mt-2 truncate">
@@ -143,6 +149,7 @@ export default function SellerMobileMenu({
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => setOpen(false)}
                 className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all ${
                   active
                     ? 'bg-slate-900 text-white'
@@ -157,7 +164,7 @@ export default function SellerMobileMenu({
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-4 border-t border-slate-100 shrink-0">
           <p className="text-[10px] text-slate-400 text-center">
             © {new Date().getFullYear()} LiveShop · UNITECH
           </p>
@@ -165,8 +172,39 @@ export default function SellerMobileMenu({
       </aside>
     </>
   )
+
+  return (
+    <>
+      {/* Bouton hamburger (reste dans le header) */}
+      <button
+        onClick={() => setOpen(true)}
+        className="md:hidden p-2 -ml-2 text-slate-900 hover:text-indigo-600 transition-colors shrink-0"
+        aria-label="Ouvrir le menu"
+      >
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2.5}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M4 6h16M4 12h16M4 18h16"
+          />
+        </svg>
+      </button>
+
+      {/* ✅ Portal : rendu dans document.body, hors du header */}
+      {mounted && createPortal(portalContent, document.body)}
+    </>
+  )
 }
 
+/* ============================================
+   Icônes
+   ============================================ */
 function MenuIcon({ name, active }: { name: string; active: boolean }) {
   const cls = `w-5 h-5 shrink-0 ${active ? 'text-white' : 'text-slate-600'}`
 

@@ -3,6 +3,10 @@ import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ProductForm from '@/components/seller/ProductForm'
 
+export const metadata = {
+  title: 'Modifier le produit — LiveShop',
+}
+
 export default async function ModifierProduitPage({
   params,
 }: {
@@ -14,14 +18,16 @@ export default async function ModifierProduitPage({
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
   if (!user) redirect('/connexion')
 
-  // ✅ Récupérer aussi le slug
+  // ✅ Récupérer aussi le slug pour l'upload d'images
   const { data: shop } = await supabase
     .from('shops')
     .select('id, slug')
     .eq('user_id', user.id)
     .maybeSingle()
+
   if (!shop) redirect('/onboarding')
 
   const { data: product } = await supabase
@@ -33,6 +39,7 @@ export default async function ModifierProduitPage({
 
   if (!product) notFound()
 
+  // Préparer les données pour le formulaire
   const initialData = {
     name: product.name,
     description: product.description ?? '',
@@ -53,10 +60,11 @@ export default async function ModifierProduitPage({
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      {/* Fil d'Ariane */}
       <div>
         <Link
           href="/dashboard/produits"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors"
         >
           <svg
             className="w-4 h-4"
@@ -73,13 +81,14 @@ export default async function ModifierProduitPage({
           </svg>
           Retour aux produits
         </Link>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mt-3">
+
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mt-3 tracking-tight">
           Modifier le produit
         </h1>
         <p className="text-slate-500 mt-1 text-sm">{product.name}</p>
       </div>
 
-      {/* ✅ Passer shopSlug */}
+      {/* Formulaire */}
       <ProductForm
         mode="edit"
         productId={product.id}

@@ -25,7 +25,7 @@ export default function SellerInfoCard({
   variant?: 'full' | 'compact' | 'badge'
 }) {
   /* ============================================
-     VARIANTE BADGE (petit bloc discret)
+     VARIANTE BADGE
      ============================================ */
   if (variant === 'badge') {
     return (
@@ -59,67 +59,122 @@ export default function SellerInfoCard({
   }
 
   /* ============================================
-     VARIANTE COMPACT (1 ligne)
+     VARIANTE COMPACT
      ============================================ */
   if (variant === 'compact') {
+    const hasStats =
+      typeof stats.productCount === 'number' ||
+      (typeof stats.orderCount === 'number' && stats.orderCount > 0)
+
     return (
-      <div className="flex items-center gap-3 bg-slate-50 rounded-2xl p-3 border border-slate-200">
-        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shrink-0 shadow-md">
-          <span className="text-white font-black text-base">
-            {shop.name.charAt(0).toUpperCase()}
-          </span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <p className="text-sm font-bold text-slate-900 truncate">
-              {shop.name}
-            </p>
-            <VerifiedBadge />
+      <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          {/* Avatar */}
+          <div className="relative shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md">
+              <span className="text-white font-black text-lg">
+                {shop.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center shadow-sm">
+              <svg
+                className="w-2.5 h-2.5 text-white"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={3.5}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
           </div>
-          <p className="text-[10px] text-slate-500">
-            Membre depuis {getMemberSince(shop.created_at)}
-          </p>
-        </div>
-        {shop.phone && (
-          <a
-            href={`tel:${shop.phone}`}
-            className="p-2 -mr-1 rounded-lg text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors shrink-0"
-            title="Appeler"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
+
+          {/* Infos */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <p className="text-sm font-bold text-slate-900 truncate">
+                {shop.name}
+              </p>
+              <VerifiedBadge />
+            </div>
+
+            {hasStats ? (
+              <p className="text-[11px] text-slate-500 flex items-center gap-1.5 flex-wrap mt-0.5">
+                {typeof stats.productCount === 'number' && (
+                  <span>
+                    {stats.productCount} produit
+                    {stats.productCount > 1 ? 's' : ''}
+                  </span>
+                )}
+                {typeof stats.productCount === 'number' &&
+                  typeof stats.orderCount === 'number' &&
+                  stats.orderCount > 0 && (
+                    <span className="w-1 h-1 rounded-full bg-slate-300" />
+                  )}
+                {typeof stats.orderCount === 'number' &&
+                  stats.orderCount > 0 && (
+                    <span className="font-semibold text-emerald-600">
+                      {stats.orderCount} commande
+                      {stats.orderCount > 1 ? 's' : ''}
+                    </span>
+                  )}
+              </p>
+            ) : (
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Membre depuis {getMemberSince(shop.created_at)}
+              </p>
+            )}
+          </div>
+
+          {/* Bouton appel */}
+          {shop.phone && (
+            <a
+              href={`tel:${shop.phone}`}
+              className="p-2 -mr-1 rounded-xl text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 transition-colors shrink-0"
+              title="Appeler le vendeur"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-              />
-            </svg>
-          </a>
-        )}
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                />
+              </svg>
+            </a>
+          )}
+        </div>
       </div>
     )
   }
 
   /* ============================================
-     VARIANTE FULL (carte complète)
+     VARIANTE FULL
      ============================================ */
   const memberSince = getMemberSince(shop.created_at)
   const isNew = isNewShop(shop.created_at)
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden">
+    <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
       {/* Bande dégradée */}
       <div className="h-16 bg-gradient-to-r from-indigo-500 via-violet-500 to-pink-500 relative">
-        <div className="absolute inset-0 opacity-[0.08]" style={{
-          backgroundImage:
-            'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)',
-          backgroundSize: '20px 20px',
-        }} />
+        <div
+          className="absolute inset-0 opacity-[0.08]"
+          style={{
+            backgroundImage:
+              'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)',
+            backgroundSize: '20px 20px',
+          }}
+        />
       </div>
 
       <div className="px-5 pb-5">
@@ -193,20 +248,24 @@ export default function SellerInfoCard({
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 pt-4 border-t border-slate-100">
-          {typeof stats.productCount === 'number' && (
-            <Stat
-              label="Produits"
-              value={String(stats.productCount)}
-              icon="products"
-            />
-          )}
-          {typeof stats.orderCount === 'number' && (
-            <Stat
-              label="Commandes"
-              value={String(stats.orderCount)}
-              icon="orders"
-            />
-          )}
+          <Stat
+            label="Produits"
+            value={
+              typeof stats.productCount === 'number'
+                ? String(stats.productCount)
+                : '—'
+            }
+            icon="products"
+          />
+          <Stat
+            label="Commandes"
+            value={
+              typeof stats.orderCount === 'number'
+                ? String(stats.orderCount)
+                : '—'
+            }
+            icon="orders"
+          />
           <Stat
             label="Membre depuis"
             value={memberSince}
@@ -303,19 +362,49 @@ function StatIcon({ name }: { name: string }) {
   const cls = 'w-4 h-4 text-slate-700'
   if (name === 'products')
     return (
-      <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+      <svg
+        className={cls}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+        />
       </svg>
     )
   if (name === 'orders')
     return (
-      <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      <svg
+        className={cls}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+        />
       </svg>
     )
   return (
-    <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    <svg
+      className={cls}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+      />
     </svg>
   )
 }
@@ -330,8 +419,10 @@ function getMemberSince(createdAt: string): string {
     (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
   )
 
+  if (diffDays < 1) return "Aujourd'hui"
+  if (diffDays < 7) return `${diffDays}j`
   if (diffDays < 30) {
-    const weeks = Math.max(1, Math.floor(diffDays / 7))
+    const weeks = Math.floor(diffDays / 7)
     return `${weeks} sem.`
   }
 
@@ -350,5 +441,5 @@ function isNewShop(createdAt: string): boolean {
   const diffDays = Math.floor(
     (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
   )
-  return diffDays < 30
+  return diffDays < 14
 }

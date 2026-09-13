@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { RESERVED_SLUGS } from '@/lib/constants'
 import ClientProductGrid from '@/components/client/ClientProductGrid'
 import SellerInfoCard from '@/components/client/SellerInfoCard'
@@ -74,6 +75,13 @@ export default async function SessionPage({
     sessionProducts
       ?.map((sp: any) => sp.products)
       .filter((p: any) => p && p.active) ?? []
+
+  // ✅ Client admin pour les stats publiques (bypass RLS)
+  const admin = createAdminClient()
+  const { count: orderCount } = await admin
+    .from('orders')
+    .select('*', { count: 'exact', head: true })
+    .eq('shop_id', shop.id)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -225,12 +233,15 @@ export default async function SessionPage({
       </section>
 
       {/* ============================================
-          ✅ CARTE VENDEUR COMPACTE
+          CARTE VENDEUR COMPACTE
           ============================================ */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
         <SellerInfoCard
           shop={shop}
-          stats={{ productCount: products.length }}
+          stats={{
+            productCount: products.length,
+            orderCount: orderCount ?? 0,
+          }}
           variant="compact"
         />
       </div>

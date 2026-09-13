@@ -7,11 +7,14 @@ import { toast } from 'sonner'
 import { useCart } from '@/lib/hooks/useCart'
 import { createOrder } from '@/lib/actions/orders'
 import { useMyOrders } from '@/lib/hooks/useMyOrders'
-
+import SellerInfoCard from './SellerInfoCard'
 type Shop = {
   id: string
   name: string
   slug: string
+  description: string | null
+  phone: string | null
+  created_at: string
   delivery_payer_default: 'CLIENT' | 'SELLER'
   free_delivery_threshold: number | null
 }
@@ -317,6 +320,9 @@ export default function CartView({
         onSubmit={handleSubmit}
         className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-5 pb-32"
       >
+        <div>
+  <SellerInfoCard shop={shop} variant="compact" />
+</div>
         {/* ARTICLES */}
         <section className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">

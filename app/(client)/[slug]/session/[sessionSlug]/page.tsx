@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { RESERVED_SLUGS } from '@/lib/constants'
 import ClientProductGrid from '@/components/client/ClientProductGrid'
-import VisitTracker from '@/components/client/VisitTracker'
+import SellerInfoCard from '@/components/client/SellerInfoCard'
 
 export async function generateMetadata({
   params,
@@ -51,7 +51,7 @@ export default async function SessionPage({
 
   const { data: shop } = await supabase
     .from('shops')
-    .select('*')
+    .select('id, name, slug, description, phone, created_at')
     .eq('slug', slug)
     .maybeSingle()
   if (!shop) notFound()
@@ -77,13 +77,12 @@ export default async function SessionPage({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <VisitTracker shopSlug={slug} />
       {/* ============================================
           HEADER STICKY
           ============================================ */}
       <header className="sticky top-0 z-40 glass border-b border-white/20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
-           <Link
+          <Link
             href={`/${slug}`}
             className="group flex items-center gap-2 text-slate-900 hover:text-indigo-600 transition-colors"
           >
@@ -106,26 +105,6 @@ export default async function SessionPage({
               Retour
             </span>
           </Link>
-          <Link
-        href={`/mes-commandes?from=${slug}`}
-        className="group relative p-2 text-slate-900 hover:text-indigo-600 transition-colors"
-        title="Suivre mes commandes"
-      >
-        <svg
-          className="w-5 h-5 group-hover:scale-110 transition-transform"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-          />
-        </svg>
-      </Link>
-         
 
           <div className="flex items-center gap-2 min-w-0">
             <span className="relative flex items-center justify-center shrink-0">
@@ -137,39 +116,59 @@ export default async function SessionPage({
             </h1>
           </div>
 
-          <Link
-            href={`/${slug}/panier?session=${sessionSlug}`}
-            className="group relative p-2 -mr-2 text-slate-900 hover:text-indigo-600 transition-colors"
-            title="Panier"
-          >
-            <svg
-              className="w-5 h-5 group-hover:scale-110 transition-transform"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
+          <div className="flex items-center gap-1">
+            <Link
+              href={`/mes-commandes?from=${slug}`}
+              className="group relative p-2 text-slate-900 hover:text-indigo-600 transition-colors"
+              title="Suivre mes commandes"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-          </Link>
+              <svg
+                className="w-5 h-5 group-hover:scale-110 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                />
+              </svg>
+            </Link>
+
+            <Link
+              href={`/${slug}/panier?session=${sessionSlug}`}
+              className="group relative p-2 -mr-2 text-slate-900 hover:text-indigo-600 transition-colors"
+              title="Panier"
+            >
+              <svg
+                className="w-5 h-5 group-hover:scale-110 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+            </Link>
+          </div>
         </div>
       </header>
 
       {/* ============================================
-          BANDEAU LIVE IMMERSIF
+          BANDEAU LIVE
           ============================================ */}
       <section className="relative overflow-hidden bg-gradient-to-br from-red-500 via-red-600 to-rose-600 text-white">
-        {/* Blobs décoratifs */}
         <div className="absolute inset-0 -z-0">
           <div className="absolute -top-24 -left-24 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-float-slow" />
           <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-float delay-700" />
         </div>
 
-        {/* Grille subtile */}
         <div
           className="absolute inset-0 opacity-[0.08]"
           style={{
@@ -181,7 +180,6 @@ export default async function SessionPage({
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
-            {/* Badge En direct */}
             <span className="inline-flex items-center gap-2 bg-white/20 backdrop-blur border border-white/30 text-white text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full">
               <span className="relative flex items-center justify-center">
                 <span className="absolute inline-flex h-2 w-2 rounded-full bg-white opacity-75 animate-ping" />
@@ -190,7 +188,6 @@ export default async function SessionPage({
               En direct
             </span>
 
-            {/* Badge livraison offerte */}
             {session.free_delivery_enabled && (
               <span className="inline-flex items-center gap-1.5 bg-white text-red-600 text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full shadow-lg animate-bounce-subtle">
                 <svg
@@ -210,7 +207,6 @@ export default async function SessionPage({
               </span>
             )}
 
-            {/* Compteur produits */}
             <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur border border-white/20 text-white text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full">
               {products.length} article{products.length > 1 ? 's' : ''}
             </span>
@@ -225,27 +221,24 @@ export default async function SessionPage({
               {session.description}
             </p>
           )}
-
-          {/* Boutique info */}
-          <div className="flex items-center gap-2 mt-4 text-xs text-white/80">
-            <div className="w-6 h-6 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center shrink-0">
-              <span className="text-white font-bold text-[10px]">
-                {shop.name.charAt(0).toUpperCase()}
-              </span>
-            </div>
-            <span className="font-medium">
-              Vendu par{' '}
-              <span className="font-bold text-white">{shop.name}</span>
-            </span>
-          </div>
         </div>
       </section>
 
       {/* ============================================
+          ✅ CARTE VENDEUR COMPACTE
+          ============================================ */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
+        <SellerInfoCard
+          shop={shop}
+          stats={{ productCount: products.length }}
+          variant="compact"
+        />
+      </div>
+
+      {/* ============================================
           PRODUITS
           ============================================ */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 pb-24">
-        {/* Titre section */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 pb-24">
         <div className="flex items-end justify-between gap-4 mb-6">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
@@ -279,7 +272,6 @@ export default async function SessionPage({
 function EmptySession({ shopSlug }: { shopSlug: string }) {
   return (
     <div className="relative bg-white rounded-3xl border border-slate-200 p-10 sm:p-16 text-center overflow-hidden animate-fade-in-up">
-      {/* Blobs décoratifs */}
       <div className="absolute -top-20 -right-20 w-64 h-64 bg-red-100/50 rounded-full blur-3xl" />
       <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-rose-100/50 rounded-full blur-3xl" />
 
@@ -304,8 +296,8 @@ function EmptySession({ shopSlug }: { shopSlug: string }) {
           Aucun produit dans ce live
         </h3>
         <p className="text-sm text-slate-500 mt-3 max-w-sm mx-auto leading-relaxed">
-          Le vendeur n'a pas encore ajouté de produits à cette session.
-          Revenez bientôt ou consultez la boutique complète.
+          Le vendeur n&apos;a pas encore ajouté de produits à cette
+          session. Revenez bientôt ou consultez la boutique complète.
         </p>
 
         <Link

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { RESERVED_SLUGS } from '@/lib/constants'
+import SellerInfoCard from '@/components/client/SellerInfoCard'
 
 export const metadata = {
   title: 'Commande confirmée — LiveShop',
@@ -21,9 +22,10 @@ export default async function ConfirmationPage({
 
   const supabase = await createClient()
 
+  // ✅ Récupérer tous les champs nécessaires pour SellerInfoCard
   const { data: shop } = await supabase
     .from('shops')
-    .select('id, name, slug, phone')
+    .select('id, name, slug, description, phone, created_at')
     .eq('slug', slug)
     .maybeSingle()
 
@@ -42,9 +44,7 @@ export default async function ConfirmationPage({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-slate-50 relative overflow-hidden">
-      {/* ============================================
-          CONFETTIS DÉCORATIFS
-          ============================================ */}
+      {/* CONFETTIS DÉCORATIFS */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-10 left-[10%] w-3 h-3 rounded-full bg-emerald-400/60 animate-float-slow" />
         <div className="absolute top-24 right-[15%] w-2 h-2 rounded-full bg-indigo-400/60 animate-float delay-500" />
@@ -58,9 +58,7 @@ export default async function ConfirmationPage({
       </div>
 
       <div className="relative max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-14 pb-24">
-        {/* ============================================
-            SUCCÈS
-            ============================================ */}
+        {/* SUCCÈS */}
         <div className="text-center mb-10 animate-fade-in-up">
           <div className="relative inline-flex items-center justify-center mb-6">
             <div className="absolute inset-0 rounded-full bg-emerald-500/30 animate-ping" />
@@ -150,9 +148,7 @@ export default async function ConfirmationPage({
           )}
         </div>
 
-        {/* ============================================
-            BOUTON SUIVI
-            ============================================ */}
+        {/* BOUTON SUIVI */}
         <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-3xl p-5 sm:p-6 mb-6 text-white shadow-xl shadow-indigo-500/20 animate-fade-in-up delay-100">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0">
@@ -171,9 +167,7 @@ export default async function ConfirmationPage({
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold">
-                Suivez votre commande
-              </p>
+              <p className="text-sm font-bold">Suivez votre commande</p>
               <p className="text-xs text-indigo-100 mt-0.5">
                 Consultez l&apos;évolution en temps réel
               </p>
@@ -200,9 +194,7 @@ export default async function ConfirmationPage({
           </div>
         </div>
 
-        {/* ============================================
-            RÉCAPITULATIF
-            ============================================ */}
+        {/* RÉCAPITULATIF */}
         {order && (
           <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm mb-6 animate-fade-in-up delay-200">
             <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -235,11 +227,10 @@ export default async function ConfirmationPage({
             </div>
 
             <div className="divide-y divide-slate-100">
-              {order.order_items?.map((item: any, index: number) => (
+              {order.order_items?.map((item: any) => (
                 <div
                   key={item.id}
                   className="px-5 sm:px-6 py-3.5 flex items-center justify-between gap-4"
-                  style={{ animationDelay: `${300 + index * 50}ms` }}
                 >
                   <div className="min-w-0 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
@@ -309,9 +300,15 @@ export default async function ConfirmationPage({
           </div>
         )}
 
-        {/* ============================================
-            PROCHAINES ÉTAPES
-            ============================================ */}
+        {/* ✅ CARTE VENDEUR COMPLÈTE */}
+        <div className="mb-6 animate-fade-in-up delay-250">
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3 px-1">
+            Votre vendeur
+          </p>
+          <SellerInfoCard shop={shop} variant="full" />
+        </div>
+
+        {/* PROCHAINES ÉTAPES */}
         <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-3xl p-5 sm:p-6 mb-6 animate-fade-in-up delay-300">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
@@ -358,9 +355,7 @@ export default async function ConfirmationPage({
           </ol>
         </div>
 
-        {/* ============================================
-            CONTACTER LE VENDEUR
-            ============================================ */}
+        {/* CONTACTER LE VENDEUR */}
         {shop.phone && (
           <a
             href={`tel:${shop.phone}`}
@@ -409,9 +404,7 @@ export default async function ConfirmationPage({
           </a>
         )}
 
-        {/* ============================================
-            ACTIONS
-            ============================================ */}
+        {/* ACTIONS */}
         <div className="space-y-3 animate-fade-in-up delay-500">
           <Link
             href={`/mes-commandes?from=${shop.slug}`}
@@ -474,10 +467,8 @@ export default async function ConfirmationPage({
           </Link>
         </div>
 
-        {/* ============================================
-            FOOTER
-            ============================================ */}
-        <div className="mt-12 pt-6 border-t border-slate-200 text-center animate-fade-in">
+        {/* FOOTER */}
+        <div className="mt-12 pt-6 border-t border-slate-200 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
               <span className="text-white font-bold text-[10px]">L</span>
@@ -487,15 +478,7 @@ export default async function ConfirmationPage({
             </span>
           </div>
           <p className="text-xs text-slate-400">
-            Propulsé par LiveShop · Développé par{' '}
-            <a
-              href="https://unitech-qvgo.onrender.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-bold text-gradient hover:opacity-80 transition-opacity"
-            >
-              UNITECH
-            </a>
+            Propulsé par LiveShop · Développé par UNITECH
           </p>
         </div>
       </div>

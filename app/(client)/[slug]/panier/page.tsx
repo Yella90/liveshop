@@ -17,9 +17,12 @@ export default async function PanierPage({
 
   const supabase = await createClient()
 
+  // ✅ Récupérer tous les champs nécessaires pour SellerInfoCard
   const { data: shop } = await supabase
     .from('shops')
-    .select('*')
+    .select(
+      'id, name, slug, description, phone, created_at, delivery_payer_default, free_delivery_threshold'
+    )
     .eq('slug', slug)
     .maybeSingle()
 
@@ -42,6 +45,9 @@ export default async function PanierPage({
         id: shop.id,
         name: shop.name,
         slug: shop.slug,
+        description: shop.description,
+        phone: shop.phone,
+        created_at: shop.created_at,
         delivery_payer_default: shop.delivery_payer_default,
         free_delivery_threshold: shop.free_delivery_threshold,
       }}

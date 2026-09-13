@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { RESERVED_SLUGS } from '@/lib/constants'
 import ClientProductGrid from '@/components/client/ClientProductGrid'
-import VisitTracker from '@/components/client/VisitTracker'
+import SellerInfoCard from '@/components/client/SellerInfoCard'
 
 export async function generateMetadata({
   params,
@@ -24,7 +24,8 @@ export async function generateMetadata({
 
   return {
     title: `${shop.name} — Boutique`,
-    description: shop.description ?? `Découvrez les produits de ${shop.name}`,
+    description:
+      shop.description ?? `Découvrez les produits de ${shop.name}`,
   }
 }
 
@@ -46,12 +47,29 @@ export default async function BoutiquePage({
 
   if (!shop) notFound()
 
-  const { data: products } = await supabase
-    .from('products')
-    .select('*, product_variants(*)')
-    .eq('shop_id', shop.id)
-    .eq('active', true)
-    .order('created_at', { ascending: false })
+  // ✅ Récupérer les stats vendeur en parallèle
+  const [
+    { data: products },
+    { count: orderCount },
+    { count: productCount },
+  ] = await Promise.all([
+    supabase
+      .from('products')
+      .select('*, product_variants(*)')
+      .eq('shop_id', shop.id)
+      .eq('active', true)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('shop_id', shop.id)
+      .in('status', ['CONFIRMEE', 'LIVREE']),
+    supabase
+      .from('products')
+      .select('*', { count: 'exact', head: true })
+      .eq('shop_id', shop.id)
+      .eq('active', true),
+  ])
 
   const visibleProducts =
     products?.filter((p) => {
@@ -62,10 +80,7 @@ export default async function BoutiquePage({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <VisitTracker shopSlug={slug} />
-      {/* ============================================
-          HEADER STICKY
-          ============================================ */}
+      {/* Header sticky */}
       <header className="sticky top-0 z-40 glass border-b border-white/20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
           <Link
@@ -91,25 +106,6 @@ export default async function BoutiquePage({
               Retour
             </span>
           </Link>
-          <Link
-        href={`/mes-commandes?from=${slug}`}
-        className="group relative p-2 text-slate-900 hover:text-indigo-600 transition-colors"
-        title="Suivre mes commandes"
-      >
-        <svg
-          className="w-5 h-5 group-hover:scale-110 transition-transform"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-          />
-        </svg>
-      </Link>
 
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shrink-0">
@@ -120,80 +116,90 @@ export default async function BoutiquePage({
             <h1 className="text-sm font-bold text-slate-900 truncate">
               {shop.name}
             </h1>
-          </div>
-
-          <Link
-            href={`/${slug}/panier`}
-            className="group relative p-2 -mr-2 text-slate-900 hover:text-indigo-600 transition-colors"
-            title="Panier"
-          >
             <svg
-              className="w-5 h-5 group-hover:scale-110 transition-transform"
+              className="w-3.5 h-3.5 text-emerald-500 shrink-0"
               fill="none"
               stroke="currentColor"
-              strokeWidth={2}
+              strokeWidth={3}
               viewBox="0 0 24 24"
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
               />
             </svg>
-          </Link>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Link
+              href={`/mes-commandes?from=${slug}`}
+              className="group relative p-2 text-slate-900 hover:text-indigo-600 transition-colors"
+              title="Suivre mes commandes"
+            >
+              <svg
+                className="w-5 h-5 group-hover:scale-110 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                />
+              </svg>
+            </Link>
+
+            <Link
+              href={`/${slug}/panier`}
+              className="group relative p-2 -mr-2 text-slate-900 hover:text-indigo-600 transition-colors"
+              title="Panier"
+            >
+              <svg
+                className="w-5 h-5 group-hover:scale-110 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+            </Link>
+          </div>
         </div>
       </header>
 
-      {/* ============================================
-          HERO BOUTIQUE
-          ============================================ */}
+      {/* Hero boutique */}
       <section className="relative overflow-hidden">
-        {/* Blobs décoratifs */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute -top-20 -left-20 w-72 h-72 bg-indigo-200/40 rounded-full blur-3xl animate-float-slow" />
           <div className="absolute -top-10 -right-20 w-72 h-72 bg-violet-200/40 rounded-full blur-3xl animate-float delay-1000" />
         </div>
 
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-8">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
-            <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-700 text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full mb-4 shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Boutique ouverte
-              </div>
-              <h1 className="text-3xl sm:text-5xl font-black text-slate-900 leading-tight tracking-tight">
-                {shop.name}
-              </h1>
-              {shop.description && (
-                <p className="text-slate-500 mt-3 text-sm sm:text-base max-w-xl leading-relaxed">
-                  {shop.description}
-                </p>
-              )}
-            </div>
-
-            {/* Stats boutique */}
-            <div className="flex gap-3 sm:gap-4 shrink-0">
-              <div className="bg-white rounded-2xl border border-slate-200 px-4 py-3 shadow-sm">
-                <p className="text-[10px] text-slate-400 uppercase tracking-wide font-semibold">
-                  Produits
-                </p>
-                <p className="text-2xl font-black text-slate-900 mt-0.5">
-                  {visibleProducts.length}
-                </p>
-              </div>
-            </div>
-          </div>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-6">
+          {/* ✅ Carte vendeur complète */}
+          <SellerInfoCard
+            shop={shop}
+            stats={{
+              productCount: productCount ?? 0,
+              orderCount: orderCount ?? 0,
+            }}
+            variant="full"
+          />
         </div>
       </section>
 
-      {/* ============================================
-          LISTE PRODUITS
-          ============================================ */}
+      {/* Liste produits */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-24">
-        {/* Titre + compte */}
         <div className="flex items-end justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900">
               Tous les produits
             </h2>
             <p className="text-sm text-slate-500 mt-1">
@@ -214,13 +220,9 @@ export default async function BoutiquePage({
   )
 }
 
-/* ============================================
-   Empty state
-   ============================================ */
 function EmptyBoutique({ shopSlug }: { shopSlug: string }) {
   return (
-    <div className="relative bg-white rounded-3xl border border-slate-200 p-10 sm:p-16 text-center overflow-hidden animate-fade-in-up">
-      {/* Blob décoratif */}
+    <div className="relative bg-white rounded-3xl border border-slate-200 p-10 sm:p-16 text-center overflow-hidden">
       <div className="absolute -top-20 -right-20 w-64 h-64 bg-indigo-100/50 rounded-full blur-3xl" />
       <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-violet-100/50 rounded-full blur-3xl" />
 
@@ -245,8 +247,8 @@ function EmptyBoutique({ shopSlug }: { shopSlug: string }) {
           Aucun produit disponible
         </h3>
         <p className="text-sm text-slate-500 mt-3 max-w-sm mx-auto leading-relaxed">
-          Le vendeur n'a pas encore publié de produits. Revenez bientôt
-          ou consultez les sessions en cours.
+          Le vendeur n&apos;a pas encore publié de produits. Revenez
+          bientôt ou consultez les sessions en cours.
         </p>
 
         <Link

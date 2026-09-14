@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { Toaster } from 'sonner'
 import './globals.css'
 import { Analytics } from "@vercel/analytics/next"
+import PWARegister from '@/components/PWARegister'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -20,6 +21,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={inter.className}>
+        <PWARegister />
         {children}
         <Analytics />
         <Toaster

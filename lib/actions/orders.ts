@@ -1,4 +1,5 @@
 'use server'
+import { sendPushToUser } from '@/lib/push/send'
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
@@ -176,6 +177,12 @@ export async function createOrder(input: CreateOrderInput) {
       )} FCFA`,
       link: `/dashboard/commandes/${order.id}`,
     })
+      // ✅ Envoyer la push
+  await sendPushToUser(shop.user_id, {
+    title: 'Nouvelle commande',
+    body: `${clientName} a commandé pour ${subtotal.toLocaleString('fr-FR')} FCFA`,
+    url: `/dashboard/commandes/${order.id}`,
+  })
   }
 
   revalidatePath('/dashboard/commandes')

@@ -1,7 +1,12 @@
-import type { NextConfig } from "next";
+// next.config.ts
+import withSerwistInit from '@serwist/next'
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
+const withSerwist = withSerwistInit({
+  swSrc: 'app/sw.ts',
+  swDest: 'public/sw.js',
+  disable: process.env.NODE_ENV === 'development',
+})
 
-export default nextConfig;
+export default withSerwist({
+  // votre config Next.js existante
+})

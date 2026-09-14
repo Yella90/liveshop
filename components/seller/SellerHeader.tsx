@@ -5,7 +5,7 @@ import { usePushNotifications } from '@/lib/hooks/usePushNotifications'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/clients'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import SellerMobileMenu from './SellerMobileMenu'
 import NotificationsBell from './NotificationsBell'
 
@@ -20,9 +20,16 @@ export default function SellerHeader({
   const supabase = createClient()
   const [loggingOut, setLoggingOut] = useState(false)
 
+  // ✅ État de montage pour éviter les mismatch SSR/client
+  const [mounted, setMounted] = useState(false)
+
   // ✅ Notifications push
   const { permission, subscribed, subscribe } = usePushNotifications()
   const [enabling, setEnabling] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   async function handleLogout() {
     setLoggingOut(true)
@@ -36,7 +43,6 @@ export default function SellerHeader({
     try {
       const result = await subscribe()
 
-      // ✅ Utiliser 'error' in result (narrowing correct)
       if ('error' in result) {
         toast.error(result.error)
       } else {
@@ -61,11 +67,10 @@ export default function SellerHeader({
     .slice(0, 2)
     .join('')
 
-  // ✅ Afficher le bouton uniquement si :
-  // - Notifications supportées
-  // - Pas encore abonné
+  // ✅ Afficher le bouton uniquement APRÈS le montage client
+  //    + vérifier les conditions de support
   const showPushButton =
-    typeof window !== 'undefined' &&
+    mounted &&
     'Notification' in window &&
     permission !== 'granted' &&
     !subscribed

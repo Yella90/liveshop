@@ -19,20 +19,33 @@ export default function SellerHeader({
   const router = useRouter()
   const supabase = createClient()
   const [loggingOut, setLoggingOut] = useState(false)
-
-  // ✅ État de montage pour éviter les mismatch SSR/client
   const [mounted, setMounted] = useState(false)
 
-  // ✅ Notifications push
-  const { permission, subscribed, subscribe } = usePushNotifications()
+  const {
+    permission,
+    subscribed,
+    checking,
+    subscribe,
+    unsubscribe,
+  } = usePushNotifications()
+
   const [enabling, setEnabling] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  /* ============================================
+     LOGOUT — désabonner AVANT de déconnecter
+     ============================================ */
   async function handleLogout() {
     setLoggingOut(true)
+    try {
+      // ✅ Désactiver le push sur cet appareil
+      await unsubscribe()
+    } catch {
+      // On continue même si erreur
+    }
     await supabase.auth.signOut()
     router.push('/connexion')
     router.refresh()
@@ -42,19 +55,16 @@ export default function SellerHeader({
     setEnabling(true)
     try {
       const result = await subscribe()
-
       if ('error' in result) {
         toast.error(result.error)
       } else {
         toast.success('Notifications push activées !', {
           description:
-            'Vous recevrez une alerte à chaque nouvelle commande.',
+            'Vous recevrez une alerte à chaque nouvelle commande sur cet appareil.',
         })
       }
     } catch (err: any) {
-      toast.error(
-        err?.message || "Impossible d'activer les notifications."
-      )
+      toast.error(err?.message || "Impossible d'activer.")
     } finally {
       setEnabling(false)
     }
@@ -67,17 +77,21 @@ export default function SellerHeader({
     .slice(0, 2)
     .join('')
 
-  // ✅ Afficher le bouton uniquement APRÈS le montage client
-  //    + vérifier les conditions de support
+  /* ============================================
+     ✅ Bouton visible si :
+     - Monté côté client
+     - Notifications supportées
+     - ET (pas abonné OU permission refusée)
+     ============================================ */
   const showPushButton =
     mounted &&
     'Notification' in window &&
-    permission !== 'granted' &&
-    !subscribed
+    !checking &&
+    !subscribed &&
+    permission !== 'denied'
 
   return (
     <header className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-slate-200 h-16 flex items-center justify-between px-4 sm:px-6">
-      {/* Côté gauche mobile : hamburger + nom boutique */}
       <div className="flex items-center gap-2 md:hidden min-w-0">
         <SellerMobileMenu
           shopName={shopName}
@@ -88,10 +102,8 @@ export default function SellerHeader({
         </span>
       </div>
 
-      {/* Placeholder desktop */}
       <div className="hidden md:block" />
 
-      {/* Côté droit : bouton push + notifications + user + logout */}
       <div className="flex items-center gap-1 sm:gap-3">
         {/* ✅ Bouton « Activer les alertes » */}
         {showPushButton && (
@@ -99,7 +111,7 @@ export default function SellerHeader({
             onClick={handleEnablePush}
             disabled={enabling}
             className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold bg-indigo-600 text-white px-3 py-2 rounded-lg hover:bg-indigo-700 active:scale-95 disabled:opacity-50 transition-all"
-            title="Recevoir les alertes de commandes"
+            title="Recevoir les alertes sur cet appareil"
           >
             {enabling ? (
               <>
@@ -127,10 +139,8 @@ export default function SellerHeader({
           </button>
         )}
 
-        {/* Cloche de notifications */}
         <NotificationsBell userId={user.id} />
 
-        {/* Infos utilisateur (desktop) */}
         <div className="hidden sm:flex items-center gap-2">
           <div className="text-right">
             <p className="text-sm font-medium text-slate-900 leading-tight">
@@ -147,7 +157,6 @@ export default function SellerHeader({
           </div>
         </div>
 
-        {/* Déconnexion */}
         <button
           onClick={handleLogout}
           disabled={loggingOut}

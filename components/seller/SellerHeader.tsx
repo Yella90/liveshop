@@ -107,37 +107,37 @@ export default function SellerHeader({
       <div className="flex items-center gap-1 sm:gap-3">
         {/* ✅ Bouton « Activer les alertes » */}
         {showPushButton && (
-          <button
-            onClick={handleEnablePush}
-            disabled={enabling}
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold bg-indigo-600 text-white px-3 py-2 rounded-lg hover:bg-indigo-700 active:scale-95 disabled:opacity-50 transition-all"
-            title="Recevoir les alertes sur cet appareil"
-          >
-            {enabling ? (
-              <>
-                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Activation...
-              </>
-            ) : (
-              <>
-                <svg
-                  className="w-3.5 h-3.5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                  />
-                </svg>
-                Activer les alertes
-              </>
-            )}
-          </button>
-        )}
+  <button
+    onClick={handleEnablePush}
+    disabled={enabling}
+    className="inline-flex items-center gap-1.5 text-xs font-semibold bg-indigo-600 text-white px-2.5 sm:px-3 py-2 rounded-lg hover:bg-indigo-700 active:scale-95 disabled:opacity-50 transition-all"
+    title="Recevoir les alertes sur cet appareil"
+  >
+    {enabling ? (
+      <>
+        <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        <span className="hidden sm:inline">Activation...</span>
+      </>
+    ) : (
+      <>
+        <svg
+          className="w-4 h-4 shrink-0"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+          />
+        </svg>
+        <span className="hidden sm:inline">Activer les alertes</span>
+      </>
+    )}
+  </button>
+)}
 
         <NotificationsBell userId={user.id} />
 

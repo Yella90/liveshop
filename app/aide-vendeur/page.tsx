@@ -537,10 +537,24 @@ const SECTIONS = [
         content: (
           <>
             <p>
-              Les variantes sont les options : taille, couleur, matière.
+              Les variantes sont les options : marque, prix, matière.
             </p>
             <p className="mt-2">
               Pour chaque variante, indiquez un <strong>nom</strong>, un{' '}
+              <strong>prix</strong> et un <strong>stock</strong>.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Variantes standard',
+        content: (
+          <>
+            <p>
+             La Variante standard est la version de base du produit. Vous pouvez ajouter d'autres variantes si nécessaire.
+            </p>
+            <p className="mt-2">
+              Faut reseigner <strong>nom</strong>, un{' '}
               <strong>prix</strong> et un <strong>stock</strong>.
             </p>
           </>

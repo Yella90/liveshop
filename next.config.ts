@@ -1,4 +1,3 @@
-// next.config.ts
 import withSerwistInit from '@serwist/next'
 
 const withSerwist = withSerwistInit({
@@ -8,5 +7,5 @@ const withSerwist = withSerwistInit({
 })
 
 export default withSerwist({
-  // votre config Next.js existante
+  turbopack: {},
 })
